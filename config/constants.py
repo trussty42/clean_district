@@ -1,4 +1,5 @@
 NAME_PATTERN = r'^[\w.@+-]+\Z'
+WASTENAME_PATTERN = r'[a-zA-Zа-яА-ЯёЁ]+'
 
 USER = 'user'
 COMPANY_EMPLOYEE = 'employee'
@@ -27,3 +28,18 @@ ORGANIZATION_STATUSES = [
     ('active', 'Активна'),
     ('blocked', 'Заблокирована')
 ]
+
+WASTE_TYPES = {
+    'plastic': 'Пластик',
+    'glass': 'Стекло',
+    'electronic': 'Электроника',
+    'metal': 'Металл',
+    'paper': 'Бумага и картон',
+    'furniture': 'Мебель и крупногабарит',
+    'textile': 'Текстиль',
+    'battery': 'Батарейки',
+    'construction': 'Строительный мусор',
+    'tree': 'Дерево',
+    'tire': 'Автошины',
+    'bulb': 'Лампочки'
+}

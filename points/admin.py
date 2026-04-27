@@ -1,3 +1,7 @@
 from django.contrib import admin
 
-# Register your models here.
+from points.models import PickUpPoint, PointWasteTypes
+
+
+admin.site.register(PickUpPoint)
+admin.site.register(PointWasteTypes)

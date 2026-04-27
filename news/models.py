@@ -1,14 +1,7 @@
 from django.db import models
 
-from users.models import Organization
-
 
 class OrganizationNews(models.Model):
-    organiation = models.ForeignKey(
-        Organization,
-        on_delete=models.CASCADE,
-        related_name='news'
-    )
     title = models.CharField(max_length=50, verbose_name='Заголовок')
     text = models.TextField(verbose_name='Текст новости')
     is_published = models.BooleanField(

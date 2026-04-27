@@ -1,10 +1,14 @@
 import re
+from decimal import Decimal
 
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
 from api.service import validate_inn_by_api
-from config.constants import NAME_PATTERN
+from config.constants import NAME_PATTERN, WASTENAME_PATTERN
+from news.models import OrganizationNews
+from points.models import PickUpPoint, PointWasteTypes, SubmissionHistory
+from reviews.models import Review
 from users.models import Organization, User
 
 
@@ -66,6 +70,38 @@ class UserLoginSerializer(serializers.Serializer):
     )
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    organizations = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'organizations'
+        )
+
+    def validate_email(self, value):
+        if User.objects.exclude(id=self.instance.id).filter(email=value).exists():
+            raise serializers.ValidationError("Этот email уже занят.")
+        return value
+
+    def validate_username(self, value):
+        if User.objects.exclude(id=self.instance.id).filter(username=value).exists():
+            raise serializers.ValidationError("Этот никнейм уже занят.")
+        return value
+
+    def get_organizations(self, obj):
+        return list(obj.employee_set.values(
+            'organization__id',
+            'organization__name',
+            'role_in_organization'
+        ))
+
+
 class OrganizationSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
 
@@ -116,4 +152,94 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
 
 class PointSerializer(serializers.ModelSerializer):
-    pass
+    organization = serializers.StringRelatedField()
+    average_rating = serializers.ReadOnlyField()
+
+    class Meta:
+        model = PickUpPoint
+        fields = (
+            'organization',
+            'adress',
+            'location',
+            'work_schedule',
+            'created_at',
+            'visits_count',
+            'average_rating',
+            'is_moderated',
+            'moderation_status'
+        )
+
+    def validate(self, data):
+        point = PickUpPoint.objects.filter(
+            organization=data['organization'],
+            adress=data['adress']
+        ).first()
+        if point:
+            raise serializers.ValidationError(
+                'В этой организации уже существует точка с таким адресом'
+            )
+        return data
+
+
+class PointWasteTypeSerializer(serializers.ModelSerializer):
+    point = serializers.StringRelatedField()
+    waste_type_display = serializers.CharField(
+        source='get_waste_type_display',
+        read_only=True
+    )
+
+    class Meta:
+        model = PointWasteTypes
+        fields = (
+            'id', 'point', 'waste_name', 'waste_type',
+            'waste_type_display', 'preparation', 'not_accepted',
+            'photo', 'price', 'is_actual_price'
+        )
+
+    def validate_waste_name(self, value):
+        if not re.fullmatch(WASTENAME_PATTERN, value):
+            raise serializers.ValidationError(
+                'Неверное название товара'
+            )
+        return value
+
+    def validate_price(self, value):
+        if value <= 0:
+            raise serializers.ValidationError(
+                'Цена должна быть положительным значением'
+            )
+        return value.quantize(Decimal('0.01'))
+
+
+class OrganizationNewsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OrganizationNews
+        fields = ('id', 'title', 'text', 'is_published', 'created_at', 'image')
+        read_only_fields = ('created_at',)
+
+
+class SubmissionHistorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SubmissionHistory
+        fields = ('id', 'user', 'point', 'waste_type', 'weight', 'total_price', 'created_at')
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+
+    class Meta:
+        model = Review
+        fields = ('id', 'user', 'point', 'rating', 'text', 'created_at')
+        read_only_fields = ('user', 'created_at', 'is_published')
+
+    def validate(self, data):
+        if self.context['request'].method == 'POST':
+            user = self.context['request'].user
+            point = data.get('point')
+            if Review.objects.filter(user=user, point=point).exists():
+                raise serializers.ValidationError(
+                    'Вы уже оставляли отзыв на эту точку приема.'
+                )
+        return data

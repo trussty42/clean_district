@@ -2,8 +2,8 @@ from django.contrib.gis.db import models as gismodels
 from django.contrib.postgres.indexes import GistIndex
 from django.db import models
 
-from users.models import Organization
-from waste_types.models import WasteType
+from config.constants import WASTE_TYPES
+from users.models import Organization, User
 
 
 class PickUpPoint(models.Model):
@@ -21,13 +21,6 @@ class PickUpPoint(models.Model):
         auto_now_add=True, verbose_name='Создано'
     )
     visits_count = models.IntegerField(default=0, verbose_name='Посещений')
-    average_rating = models.DecimalField(
-        max_digits=3,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        verbose_name='Рейтинг пункта'
-    )
     is_moderated = models.BooleanField(
         default=False, verbose_name='Прошел модерацию'
     )
@@ -52,12 +45,24 @@ class PickUpPoint(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.organization.name} {self.adress}'
+        return f'{self.organization.name} - {self.adress}'
+
+    @property
+    def average_rating(self):
+        return self.review.filter(is_published=True).aggregate(models.Avg('rating'))['rating__avg']
 
 
 class PointWasteTypes(models.Model):
-    point = models.ForeignKey(PickUpPoint, on_delete=models.CASCADE)
-    waste_type = models.ForeignKey(WasteType, on_delete=models.CASCADE)
+    point = models.ForeignKey(
+        PickUpPoint,
+        on_delete=models.CASCADE,
+        related_name='waste_types'
+    )
+    waste_name = models.CharField('Название отхода', null=False, blank=False)
+    waste_type = models.CharField('Тип отхода', choices=WASTE_TYPES)
+    preparation = models.TextField('Как подготовить к сдаче')
+    not_accepted = models.TextField('Не принимается')
+    photo = models.ImageField('Фото отхода', null=True, blank=True)
     price = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, verbose_name='Цена'
     )
@@ -69,3 +74,33 @@ class PointWasteTypes(models.Model):
         verbose_name = 'Приём отхода в пункте'
         verbose_name_plural = 'Приёмы отходов в пунктах'
         unique_together = ('point', 'waste_type')
+
+    def __str__(self):
+        return f'{self.point.adress} - {self.waste_name}'
+
+
+class SubmissionHistory(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='submissions', verbose_name='Пользователь'
+    )
+    point = models.ForeignKey(
+        PickUpPoint, on_delete=models.CASCADE, related_name='submissions', verbose_name='Пункт приёма'
+    )
+    waste_type = models.ForeignKey(
+        PointWasteTypes, on_delete=models.SET_NULL, null=True, verbose_name='Тип отхода'
+    )
+    weight = models.DecimalField(
+        max_digits=10, decimal_places=2, verbose_name='Вес (кг)'
+    )
+    total_price = models.DecimalField(
+        max_digits=10, decimal_places=2, verbose_name='Сумма (руб)'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата сдачи')
+
+    class Meta:
+        verbose_name = 'История сдачи'
+        verbose_name_plural = 'История сдач'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.created_at.strftime("%Y-%m-%d")} - {self.user.username} - {self.weight} кг'

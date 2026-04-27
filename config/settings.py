@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'drf_yasg',
     'django.contrib.postgres',
     'django.contrib.gis',
     'phonenumber_field',
@@ -32,7 +33,6 @@ INSTALLED_APPS = [
     'points.apps.PointsConfig',
     'reviews.apps.ReviewsConfig',
     'users.apps.UsersConfig',
-    'waste_types.apps.WasteTypesConfig',
 ]
 
 MIDDLEWARE = [
