@@ -751,203 +751,323 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     }
 }
 
-/* ===== МОДАЛЬНОЕ ОКНО ===== */
-.modal-overlay {
+/* ===== МОДАЛЬНОЕ ОКНО ПУНКТА ===== */
+.point-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(6px);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 3000;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
     padding: 20px;
 }
 
-.modal-overlay.active {
+.point-modal-overlay.active {
     opacity: 1;
     visibility: visible;
 }
 
-.modal-content {
+.point-modal-content {
     background: #fff;
-    border-radius: 20px;
-    max-width: 900px;
+    border-radius: 24px;
+    max-width: 500px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
     transform: translateY(30px) scale(0.95);
     transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    font-family: "TTDaysSans", sans-serif;
+    padding: 32px;
 }
 
-.modal-overlay.active .modal-content {
+.point-modal-overlay.active .point-modal-content {
     transform: translateY(0) scale(1);
 }
 
-.modal-close {
+/* Крестик закрытия */
+.point-modal-close {
     position: absolute;
-    top: 16px;
-    right: 16px;
-    background: #ffffff;
-    border: none;
+    top: 20px;
+    right: 20px;
     width: 40px;
     height: 40px;
+    background: transparent;
+    border: none;
     border-radius: 50%;
-    font-size: 28px;
-    line-height: 1;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #609432;
-    transition: all 0.2s;
+    transition: background 0.2s;
     z-index: 10;
 }
 
-.modal-close:hover { color: #555; }
-
-.modal-body-two-columns {
-    display: grid;
-    grid-template-columns: 350px 1fr;
-    gap: 0;
+.point-modal-close:hover {
+    background: #f0f0f0;
 }
 
-.modal-left-column {
-    background: #ffffff;
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    border-right: 1px solid #b8b8b849;
+/* Шапка модалки */
+.point-modal-header {
+    margin-bottom: 20px;
+    padding-right: 50px;
 }
 
-.modal-image {
-    width: 100%;
-    max-width: 240px;
-    height: 240px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 10px;
-    overflow: hidden;
-    background: #f8faf8;
-}
-
-.modal-image img {
-    max-width: 90%;
-    max-height: 90%;
-    object-fit: contain;
-    display: block;
-}
-
-.modal-main-info { width: 100%; }
-
-.modal-title {
-    font-size: 1.6rem;
+.point-modal-title {
+    font-size: 24px;
     font-weight: 700;
-    margin: 0 20px 10px;
+    margin: 0 0 12px 0;
     color: #000;
-    line-height: 1.2;
-}
-
-.modal-meta {
-    font-size: 0.95rem;
-    color: #666;
-    margin: 6px 20px 0;
-}
-
-.modal-price {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #609432;
-    margin: 10px 0 0;
-    padding: 16px;
-    border-radius: 12px;
-    background: #e8f5e3;
-}
-
-.modal-right-column {
-    padding: 40px;
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    gap: 8px;
 }
 
-.modal-section {
-    padding: 20px;
-    background: #ffffff;
-    border-radius: 12px;
+.heart-icon {
+    font-size: 20px;
+}
+
+.point-modal-rating {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+}
+
+.point-modal-rating .star {
+    color: #FFD700;
+    font-size: 18px;
+}
+
+.point-modal-rating .rating-value {
+    font-weight: 700;
+    color: #000;
+}
+
+.point-modal-rating .rating-count {
+    color: #888;
+}
+
+/* Разделитель */
+.point-modal-divider {
+    height: 1px;
+    background: #e8e8e8;
+    margin: 20px 0;
+}
+
+/* Секции */
+.point-modal-section {
+    margin-bottom: 8px;
 }
 
 .modal-section-title {
-    font-size: 1.05rem;
+    font-size: 15px;
     font-weight: 600;
-    color: #000000;
-    margin: 0 0 14px;
+    color: #000;
+    margin: 0 0 12px 0;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
-.check-icon { color: #609432; font-weight: 900; font-size: 1.2rem; }
-.cross-icon { color: #d32f2f; font-weight: 900; font-size: 1.2rem; }
+.status-inline {
+    font-size: 13px;
+    font-weight: 600;
+}
 
-.modal-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+.status-inline.status-open {
+    color: #609432;
+}
+
+.status-inline.status-closed {
+    color: #c62828;
+}
+
+/* График работы */
+.schedule-row {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 14px;
 }
 
-.modal-list li {
-    font-size: 0.95rem;
-    color: #444;
-    padding-left: 26px;
-    position: relative;
-    line-height: 1.5;
+.schedule-day {
+    color: #333;
+    font-weight: 500;
 }
 
-.modal-list li::before {
-    content: "•";
+.schedule-time {
+    color: #666;
+    font-weight: 500;
+}
+
+.schedule-row-weekend .schedule-day {
+    color: #333;
+}
+
+.schedule-row-weekend .schedule-time {
+    color: #c62828;
+    font-weight: 600;
+}
+
+/* Адрес и текст */
+.point-modal-text {
+    font-size: 14px;
+    color: #333;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Ссылки */
+.point-modal-link {
+    display: block;
+    font-size: 14px;
+    color: #609432;
+    text-decoration: none;
+    font-weight: 500;
+    margin-bottom: 6px;
+    transition: color 0.2s;
+}
+
+.point-modal-link:hover {
+    color: #426623;
+    text-decoration: underline;
+}
+
+/* Цены */
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 14px;
+}
+
+.price-material {
+    color: #333;
+}
+
+.price-value {
     color: #609432;
     font-weight: 700;
-    position: absolute;
-    left: 8px;
-    font-size: 1.3rem;
-    line-height: 1;
 }
 
-.modal-list.not-accepted li::before {
-    color: #d32f2f;
-    content: "×";
-    font-weight: 700;
-    font-size: 1.2rem;
+/* Отзывы */
+.review-card {
+    background: #f8faf8;
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 12px;
 }
 
-.modal-recycled-text {
-    font-size: 0.95rem;
-    color: #444;
-    line-height: 1.6;
-    margin: 0;
-}
-
-.modal-actions {
+.review-header {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.review-user {
+    display: flex;
+    align-items: center;
     gap: 12px;
-    flex-wrap: wrap;
-    margin-top: auto;
-    padding-top: 20px;
+}
+
+.review-avatar {
+    width: 40px;
+    height: 40px;
+    background: #609432;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
     justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.review-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.review-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.review-date {
+    font-size: 12px;
+    color: #888;
+}
+
+.review-rating {
+    color: #FFD700;
+    font-size: 16px;
+    letter-spacing: 2px;
+}
+
+.review-text {
+    font-size: 14px;
+    color: #444;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Кнопка "Написать отзыв" */
+.point-modal-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 24px;
+    padding-top: 20px;
+}
+
+.btn-review {
+    padding: 14px 40px;
+    background: #609432;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-family: "TTDaysSans", sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(96, 148, 50, 0.3);
+    transition: all 0.2s;
+}
+
+.btn-review:hover {
+    background: #426623;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(96, 148, 50, 0.4);
+}
+
+.btn-review:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 600px) {
+    .point-modal-content {
+        padding: 24px 20px;
+        max-height: 95vh;
+    }
+
+    .point-modal-title {
+        font-size: 20px;
+    }
+
+    .point-modal-close {
+        top: 16px;
+        right: 16px;
+    }
 }
 
 .btn-primary, .btn-secondary {
@@ -1029,3 +1149,328 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     .custom-time-picker { padding: 12px; }
     .time-input { font-size: 16px; }
 }
+
+.point-side-panel {
+    position: fixed;
+    top: 0;
+    right: -500px;
+    width: 400px;
+    max-width: 90%;
+    height: 100vh;
+    background: #fff;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+    z-index: 2000;
+    transition: right 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.point-side-panel.active {
+    right: 0;
+}
+
+.panel-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: #ffffff;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #609432;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.panel-close:hover {
+    color: #609432;
+}
+
+.panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px 0px 24px;
+}
+
+/* Контент панели */
+.panel-content h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    color: #000;
+    padding-right: 50px;
+}
+
+.panel-rating {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 20px;
+    font-size: 15px;
+}
+
+.panel-rating .star {
+    color: #FFD700;
+    font-size: 18px;
+}
+
+.panel-rating .rating-value {
+    font-weight: 500;
+}
+
+.panel-rating .rating-count {
+    color: #888;
+}
+
+.panel-section {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.panel-section:last-child {
+    border-bottom: none;
+}
+
+.panel-section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #000;
+    margin: 0 0 12px 0;
+}
+
+.panel-status {
+    font-size: 14px;
+    font-weight: 600;
+    color: #609432;
+    white-space: nowrap;
+    margin: 0;
+    align-items: center;
+}
+
+.panel-status.status-closed {
+    color: #c62828;
+}
+
+.panel-text {
+    font-size: 14px;
+    color: #000000;
+    margin: 0 0 8px 0;
+    line-height: 1.6;
+}
+
+.panel-time {
+    display: flex;
+    gap: 15px;
+}
+
+.panel-time, .panel-text {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.panel-link {
+    display: block;
+    font-size: 14px;
+    color: #609432;
+    text-decoration: none;
+    font-weight: 500;
+    margin-bottom: 6px;
+    transition: color 0.2s;
+}
+
+.panel-link:hover {
+    color: #426623;
+    text-decoration: underline;
+}
+
+/* Цены */
+.panel-prices {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.panel-price-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+.panel-price-material {
+    color: #333;
+}
+
+.panel-price-value {
+    color: #609432;
+    font-weight: 700;
+}
+
+/* Типы */
+.panel-types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.panel-type-tag {
+    padding: 6px 14px;
+    background: #e8f5e3;
+    color: #609432;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Кнопки действий */
+.panel-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.panel-btn {
+    flex: 1;
+    padding: 10px;
+    background: #fff;
+    color: #609432;
+    border: 1px solid #609432;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: "TTDaysSans", sans-serif;
+    transition: all 0.3s ease;
+    background: #609432;
+    color: #fff;
+}
+
+.panel-btn-primary:hover {
+    background: #426623;
+}
+
+/* Затемнение фона */
+.point-side-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    z-index: 1999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s;
+}
+
+.point-side-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.panel-footer {
+    background: #fff;
+    padding: 20px 24px;
+    border-top: 1px solid #e8e8e8;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+.btn-review-full {
+    width: 100%;
+    padding: 14px;
+    border-radius: 50px;
+    background: #609432;
+    color: #fff;
+    border: none;
+    font-family: "TTDaysSans", sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(96, 148, 50, 0.3);
+}
+
+.btn-review-full:hover {
+    background: #426623;
+    transform: translateY(-2px);
+}
+
+.panel-reviews-section {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.review-item {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0px 5px 10px #00000020;
+    border: 1px solid #d8d8d896;
+    border-left: 3px solid #609432;
+}
+
+.review-item:last-child { margin-bottom: 0; }
+
+.review-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.review-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.review-avatar {
+    width: 36px;
+    height: 36px;
+    background: #609432;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.review-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.2;
+}
+
+.review-date {
+    display: block;
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+}
+
+.review-stars {
+    color: #FFD700;
+    font-size: 14px;
+    letter-spacing: 2px;
+}
+
+.review-text {
+    font-size: 14px;
+    color: #444;
+    margin: 0;
+    line-height: 1.5;
+}
+

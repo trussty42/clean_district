@@ -3,24 +3,36 @@ let allPoints = [
     {
         id: 1,
         coords: [56.837435, 60.597636],
-        name: 'ЭкоПункт',
-        address: 'ул. Куйбышева, 21',
-        phone: '+7 (495) 123-45-67',
-        hours: 'Пн-Пт: 9:00-18:00',
-        types: ['Пластик', 'Бумага', 'Стекло', 'Металл'],
+        name: 'Вторплюс',
+        address: 'г. Екатеринбург, ул. Куйбышева, 21',
+        phone: '+7 (777) 777-77-77',
+        email: 'vtorplusekologiyu.ru',
+        hours: 'Пн-Пт: 12:00-20:00',
+        types: ['Пластик', 'Бумага', 'Электроника'],
+        prices: {
+            'Пластик': '22 ₽/кг',
+            'Бумага': '8 ₽/кг',
+            'Электроника': '40 ₽/кг'
+        },
         rating: 4.8,
-        reviews: 12,
+        reviews: 15,
         isOpenNow: true,
         is24hours: false
     },
     {
         id: 2,
         coords: [56.836766, 60.657949],
-        name: 'ЭкоЛогия',
-        address: 'ул. Коминтерна, 11',
+        name: 'ЭкоПункт',
+        address: 'г. Екатеринбург, ул. Коминтерна, 11',
         phone: '+7 (495) 987-65-43',
-        hours: 'Ежедневно: 10:00-20:00',
+        email: '',
+        hours: 'Пн-Пт: 9:00-18:00',
         types: ['Пластик', 'Бумага', 'Текстиль'],
+        prices: {
+            'Пластик': '20 ₽/кг',
+            'Бумага': '10 ₽/кг',
+            'Текстиль': '15 ₽/кг'
+        },
         rating: 4.5,
         reviews: 8,
         isOpenNow: true,
@@ -29,7 +41,6 @@ let allPoints = [
 ];
 let filteredPoints = [...allPoints];
 
-// ===== ПОЛУЧЕНИЕ КООРДИНАТ ПОЛЬЗОВАТЕЛЯ (ГЛОБАЛЬНО) =====
 function getUserLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -143,7 +154,7 @@ function addMarker(map, coords, name, address, phone, hours, types, rating, revi
                     <span class="status-badge ${isOpenNow ? 'status-open' : 'status-closed'}">
                         ${isOpenNow ? 'открыто' : 'закрыто'}
                     </span>
-                    <button class="balloon-btn" onclick="openPointModal(${id})">
+                    <button class="balloon-btn" onclick="openSidePanel(${id})">
                         <img src="./images/arrow.svg" alt="Подробнее" onerror="this.style.display='none'"/>
                     </button>
                 </div>
@@ -153,7 +164,7 @@ function addMarker(map, coords, name, address, phone, hours, types, rating, revi
     }, {
         preset: 'islands#greenRecyclingIcon',
         iconColor: '#609432',
-        alloonMaxWidth: 300, // Ограничиваем максимальную ширину
+        balloonMaxWidth: 300, // Ограничиваем максимальную ширину
         balloonMinWidth: 300, // Фиксируем ширину
         balloonCloseButton: false,
         balloonPanelMaxMapArea: 0 // Отключаем панель
@@ -198,7 +209,7 @@ function renderList() {
     }
     
     listContent.innerHTML = filteredPoints.map(point => `
-        <div class="collection-point-card" onclick="window.openPointModal(${point.id})">
+        <div class="collection-point-card" onclick="window.openSidePanel(${point.id})">
             <div class="card-header">
                 <h3 class="card-title">${point.name}</h3>
                 ${point.rating ? `
@@ -227,15 +238,12 @@ function renderList() {
                 <span class="status-badge ${point.isOpenNow ? 'status-open' : 'status-closed'}">
                     ${point.isOpenNow ? 'открыто' : 'закрыто'}
                 </span>
-                <button class="card-btn" onclick="window.openPointModal(${point.id})">
-                    Подробнее
-                </button>
+                <button class="card-btn" onclick="event.stopPropagation(); window.openSidePanel(${point.id})">Подробнее</button>
             </div>
         </div>
     `).join('');
 }
 
-// ===== ПОИСК =====
 function initSearch() {
     const searchInput = document.getElementById('searchInput');
     if (!searchInput) return;
@@ -275,7 +283,6 @@ function initSearch() {
     });
 }
 
-// ===== СОРТИРОВКА ✅ =====
 function initSort() {
     const sortSelect = document.getElementById('sortSelect');
     if (!sortSelect) return;
@@ -439,7 +446,6 @@ function applyFilters() {
     const minRating = parseFloat(document.getElementById('ratingRange')?.value) || 0;
     const maxRadius = parseFloat(document.getElementById('radiusRange')?.value) || 50;
     
-    // ✅ Используем глобальные координаты
     const userCoords = window.userCoordinates || null;
     
     filteredPoints = allPoints.filter(p => {
@@ -520,22 +526,13 @@ function resetFilters() {
     }
     
     document.getElementById('filtersSidebar')?.classList.remove('open');
-    console.log('✅ Сброс завершён');
+    console.log('Сброс завершён');
 }
 
 function updateFoundCount() {
     const foundCountEl = document.querySelector('.found-count strong');
     if (foundCountEl) foundCountEl.textContent = filteredPoints.length;
 }
-
-// для открытия модального окна из баллона
-window.openPointModal = function(id) {
-    const point = allPoints.find(p => p.id === id);
-    if (point) {
-        alert(`${point.name}\n${point.address}\n\nЗдесь можно открыть модальное окно с деталями`);
-        // Или вызови свою функцию открытия модалки
-    }
-};
 
 // для закрытия любого открытого баллона
 window.closeBalloon = function() {
@@ -545,5 +542,155 @@ window.closeBalloon = function() {
                 obj.balloon.close();
             }
         });
+    }
+};
+
+let currentPanelPoint = null; //Глобальная переменная для хранения открытого пункта
+
+window.openSidePanel = function(id) {
+    const point = allPoints.find(p => p.id === id);
+    if (!point) return;
+    
+    currentPanelPoint = point;
+    const panel = document.getElementById('pointSidePanel');
+    const content = document.getElementById('panelContent');
+    
+    // Формируем цены
+    const pricesHtml = point.prices ? Object.entries(point.prices).map(([m, p]) => `
+        <div class="panel-price-item"><span class="panel-price-material">${m}</span><span class="panel-price-value">${p}</span></div>
+    `).join('') : '';
+    
+    content.innerHTML = `
+        <h2>${point.name}</h2>
+        <div class="panel-rating" style="display:flex; gap:8px; align-items:center; margin-bottom:24px; font-size:15px;">
+            <span style="color:#FFD700;">★</span>
+            <strong>${point.rating}</strong>
+            <span style="color:#888;">(${point.reviews} оценок)</span>
+        </div>
+        
+        <!-- Время работы -->
+        <div class="panel-section">
+            <h4 class="panel-section-title">Время работы</h4>
+            <div class="panel-time">
+                <span class="panel-text">${point.hours}</span>
+                <span class="panel-status ${point.isOpenNow ? '' : 'status-closed'}">
+                    ${point.isOpenNow ? 'открыто' : 'закрыто'}
+                </span>
+            </div>
+        </div>
+
+        <!-- Адрес -->
+        <div class="panel-section">
+            <h4 class="panel-section-title">Адрес</h4>
+            <p class="panel-text">${point.address}</p>
+        </div>
+
+        <!-- Контакты -->
+        <div class="panel-section">
+            <h4 class="panel-section-title">Контакты</h4>
+            <a href="tel:${point.phone.replace(/\D/g, '')}" class="panel-link" style="color:#609432; text-decoration:none;">${point.phone}</a>
+            ${point.email ? `<a href="mailto:${point.email}" class="panel-link" style="color:#609432; text-decoration:none; display:block; margin-top:4px;">${point.email}</a>` : ''}
+        </div>
+
+        <!-- Цены -->
+        ${pricesHtml ? `
+            <div class="panel-section">
+                <h4 class="panel-section-title">Цены</h4>
+                <div class="panel-prices" style="display:flex; flex-direction:column; gap:6px;">
+                    ${pricesHtml}
+                </div>
+            </div>
+        ` : ''}
+
+        <!-- Отзывы -->
+        <div class="panel-section">
+            <h4 class="panel-section-title">Отзывы</h4>
+            
+            <div class="review-item">
+                <div class="review-top">
+                    <div class="review-user">
+                        <div class="review-avatar">i</div>
+                        <div class="review-info">
+                            <span class="review-name">ivan229</span>
+                            <span class="review-date">15.04.2026</span>
+                        </div>
+                    </div>
+                    <span class="review-stars">★★★★★</span>
+                </div>
+                <p class="review-text">Отличный пункт! Быстро принимают, персонал вежливый. Цены адекватные.</p>
+            </div>
+
+            <div class="review-item">
+                <div class="review-top">
+                    <div class="review-user">
+                        <div class="review-avatar">s</div>
+                        <div class="review-info">
+                            <span class="review-name">sonixks</span>
+                            <span class="review-date">02.04.2026</span>
+                        </div>
+                    </div>
+                    <span class="review-stars">★★★★☆</span>
+                </div>
+                <p class="review-text">Удобное расположение. Принимают без очередей в обеденное время.</p>
+            </div>
+
+            <div class="review-item">
+                <div class="review-top">
+                    <div class="review-user">
+                        <div class="review-avatar">y</div>
+                        <div class="review-info">
+                            <span class="review-name">yastepan4ik</span>
+                            <span class="review-date">03.03.2026</span>
+                        </div>
+                    </div>
+                    <span class="review-stars">★★★★★</span>
+                </div>
+                <p class="review-text">Вообще супер!!</p>
+            </div>
+        </div>
+    `;
+
+    panel.classList.add('active');
+
+    // Затемнение фона
+    const overlay = document.createElement('div');
+    overlay.className = 'point-side-overlay active';
+    overlay.id = 'pointSideOverlay';
+    overlay.onclick = closeSidePanel;
+    document.body.appendChild(overlay);
+};
+
+window.openReviewForm = function() {
+    if (!currentPanelPoint) return;
+    
+    const review = prompt(`Ваш отзыв для "${currentPanelPoint.name}":`);
+    if (review && review.trim() !== "") {
+        alert("Спасибо! Отзыв отправлен.");
+        // Здесь позже можно добавить fetch-запрос на сервер
+    }
+};
+
+window.closeSidePanel = function() {
+    const panel = document.getElementById('pointSidePanel');
+    const overlay = document.getElementById('pointSideOverlay');
+    
+    panel.classList.remove('active');
+    if (overlay) overlay.remove();
+};
+
+// Вспомогательные функции
+window.buildRoute = function(lat, lon) {
+    window.open(`https://yandex.ru/maps/?rtext=~${lat},${lon}&rtt=auto`, '_blank');
+};
+
+window.callPoint = function(phone) {
+    window.location.href = `tel:${phone.replace(/\D/g, '')}`;
+};
+
+window.openReviewForm = function(pointName) {
+    const review = prompt(`Напишите отзыв для "${pointName}":`);
+    if (review && review.trim() !== "") {
+        // Здесь можно добавить отправку на сервер
+        alert("Спасибо за ваш отзыв!");
     }
 };

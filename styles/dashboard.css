@@ -1,0 +1,1343 @@
+.dashboard-main {
+    background: #ffffff;
+    padding: 40px 20px;
+    margin: 90px 0;
+}
+
+.dashboard-container {
+    max-width: 1640px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+.dashboard-sidebar {
+    position: sticky;
+    top: 100px;
+    height: calc(100vh - 180px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    background: #609432;
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+.dashboard-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.dashboard-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+}
+
+.dashboard-nav {
+    flex-grow: 1;
+    margin: 20px 0;
+}
+
+.logout-btn {
+    margin-top: auto;
+}
+
+.user-mini-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 20px;
+}
+
+.user-avatar {
+    width: 48px;
+    height: 48px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.user-avatar svg {
+    width: 24px;
+    height: 24px;
+    color: #609432;
+    transition: opacity 0.2s;
+    z-index: 1;
+}
+
+.user-avatar .avatar-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+    z-index: 2;
+}
+
+.user-avatar.has-image svg {
+    opacity: 0;
+}
+.user-avatar.has-image .avatar-img {
+    display: block;
+}
+
+.user-avatar-photo {
+    position: absolute;
+    top: 24px; 
+    left: 24px; 
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 10;
+    display: none;
+}
+
+.user-avatar-photo.active {
+    display: block;
+}
+
+.user-avatar-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+#sidebarAvatar.has-image svg {
+    display: none;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #ffffff;
+    font-size: 18px;
+}
+
+.user-joined {
+    font-size: 12px;
+    color: #ffffff93;
+    font-weight: 500;
+}
+
+.dashboard-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.nav-item:hover {
+    background: #8eb968;
+    color: #fff;
+}
+
+.nav-item.active {
+    background: #ffffff;
+    color: #609432;
+    font-weight: 600;
+}
+
+.nav-item svg {
+    flex-shrink: 0;
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    padding: 10px;
+    gap: 10px;
+    width: 100%;
+    margin-top: 20px;
+    border: none;
+    color: #fff;
+    font-family: "TTDaysSans", sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.logout-btn:hover {
+    color: #c62828;
+}
+
+.dashboard-content {
+    background: #fff;
+    border-radius: 24px;
+    padding: 40px 60px;
+    min-height: 100vh;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dashboard-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 24px 0;
+    color: #000;
+}
+
+/* ===== СЕТКА ПРОФИЛЯ ===== */
+.profile-layout {
+    display: grid;
+    grid-template-columns: 1fr 350px; 
+    gap: 180px;
+    align-items: start;
+}
+
+.profile-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.profile-avatar-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрируем аватар */
+    padding-top: 10px;
+}
+
+/* Сам кружок аватара */
+.avatar-preview {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 24px;
+    transition: transform 0.2s;
+}
+
+.user-avatar-large {
+    width: 100%;
+    height: 100%;
+    background: #609432;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+}
+
+/* Оверлей (значок камеры) */
+.avatar-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #fff;
+    opacity: 0; /* Скрыто по умолчанию */
+    transition: opacity 0.2s;
+}
+
+.avatar-preview:hover .avatar-overlay {
+    opacity: 1; /* Появляется при наведении */
+}
+
+/* Текст подсказок */
+.avatar-controls {
+    text-align: center;
+}
+
+.avatar-hint-text {
+    font-size: 14px;
+    color: #555;
+    margin: 0 0 4px 0;
+    font-weight: 500;
+}
+
+.avatar-hint-size {
+    display: block;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 16px;
+}
+
+/* Кнопка "Сохранить" */
+.form-actions {
+    margin-top: 10px;
+}
+
+/* Кнопка удаления */
+.btn-remove-avatar {
+    padding: 8px 20px;
+    background: transparent;
+    border: 1px solid #c62828;
+    color: #c62828;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-remove-avatar:hover {
+    background: #ffebee;
+}
+
+/* Адаптив: на мобильных колонки становятся вертикальными */
+@media (max-width: 900px) {
+    .profile-layout {
+        grid-template-columns: 1fr; /* Одна колонка */
+        gap: 40px;
+    }
+    
+    .profile-avatar-wrapper {
+        order: -1; /* Аватар перемещается наверх */
+        margin-bottom: 20px;
+    }
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-bottom: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+}
+
+.form-group input,
+.form-group textarea {
+    padding: 12px 16px;
+    border: 1px solid #c5c5c5;
+    border-radius: 12px;
+    font-family: "TTDaysSans", sans-serif;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #609432;
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.btn-primary {
+    padding: 12px 32px;
+    background: #609432;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-family: "TTDaysSans", sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background: #426623;
+}
+
+.form-status {
+    font-size: 14px;
+    color: #609432;
+    font-weight: 500;
+}
+
+/* ===== ТАБЛИЦА ИСТОРИИ ===== */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.data-table th {
+    text-align: center;
+    padding: 14px 16px;
+    background: #ffffffd0;
+    font-weight: 600;
+    color: #000000;
+    border-bottom: 2px solid #609432;
+}
+
+.data-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #ffffff;
+    color: #000000;
+    text-align: center;
+}
+
+.data-table tr:hover {
+    background: #ffffff;
+}
+
+/* Шапка истории сдач */
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.history-header-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.history-hint {
+    font-size: 14px;
+    color: #666;
+    margin: 8px 0 0 0;
+    line-height: 1.5;
+}
+
+.btn-add-submission {
+    flex-shrink: 0;
+    margin-top: 12px;
+}
+
+@media (max-width: 600px) {
+    .history-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .btn-add-submission {
+        width: 100%;
+        margin-top: 16px;
+    }
+}
+
+/* Статус "Не подтверждено" */
+.status-badge.unconfirmed {
+    color: #c62828;
+}
+
+/* Статус "На проверке" */
+.status-badge.pending {
+    color: #ef6c00;
+}
+
+.btn-write-review {
+    padding: 6px 14px;
+    background: #609432;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.btn-write-review:hover { background: #426623; transform: translateY(-1px); }
+
+/* Статус "Отзыв оставлен" */
+.review-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #e8f5e3;
+    color: #609432;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Недоступно для pending/unconfirmed */
+.feedback-disabled {
+    color: #888;
+    font-size: 12px;
+    align-items: center;
+}
+
+/* Кнопка "Написать отзыв" в таблице */
+.btn-write-review {
+    padding: 6px 16px;
+    background: #609432;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    font-family: "TTDaysSans", sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.btn-write-review:hover {
+    background: #426623;
+}
+
+/* Статус "Отзыв написан" */
+.review-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border: 1px solid #609432;
+    color: #609432;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Модальное окно отзыва */
+.review-modal {
+    max-width: 480px;
+}
+
+.review-modal textarea {
+    width: 100%;
+    margin: 16px 0;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.review-stars {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin: 10px 0;
+}
+
+.review-stars span {
+    font-size: 32px;
+    cursor: pointer;
+    color: #ddd;
+    transition: color 0.2s;
+}
+
+.review-stars span.active,
+.review-stars span:hover {
+    color: #FFD700;
+}
+
+
+/* ===== ДОСТИЖЕНИЯ ===== */
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.achievement-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.achievement-card.unlocked {
+    border-color: #609432;
+    background: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.achievement-card.locked {
+    opacity: 0.6;
+}
+
+.achievement-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 12px;
+    background: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+}
+
+.achievement-card.unlocked .achievement-icon {
+    color: #609432;
+}
+
+.achievement-title {
+    font-weight: 600;
+    color: #000;
+    margin: 0 0 4px 0;
+    font-size: 16px;
+}
+
+.achievement-desc {
+    font-size: 12px;
+    color: #666;
+    margin: 0;
+}
+
+/* ===== ОРГАНИЗАЦИИ ===== */
+.org-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.org-hint {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+}
+
+.org-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.org-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.org-card:hover {
+    border-color: #609432;
+    box-shadow: 0 4px 12px rgba(96, 148, 50, 0.1);
+}
+
+.org-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.org-name {
+    font-weight: 600;
+    color: #000;
+    font-size: 16px;
+}
+
+.org-role {
+    font-size: 13px;
+    color: #666;
+}
+
+.org-status {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.org-status.pending {
+    background: #ffe3b7b4;
+    color: #ef6c00;
+}
+
+.org-status.verified {
+    background: #dcfcd0d5;
+    color: #609432;
+}
+
+.org-status.rejected {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.org-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.org-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-family: "TTDaysSans", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.org-btn-primary {
+    background: #609432;
+    color: #fff;
+}
+
+.org-btn-primary:hover {
+    background: #426623;
+}
+
+.org-btn-secondary {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.org-btn-secondary:hover {
+    background: #e0e0e0;
+}
+
+/* ===== АДАПТИВ ===== */
+@media (max-width: 968px) {
+    .dashboard-container {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-sidebar {
+        position: static;
+        display: flex;
+        overflow-x: auto;
+        padding: 16px;
+    }
+
+    .user-mini-profile {
+        display: none;
+    }
+
+    .dashboard-nav ul {
+        display: flex;
+        gap: 8px;
+    }
+
+    .nav-item {
+        flex-direction: column;
+        padding: 12px;
+        text-align: center;
+        min-width: 80px;
+    }
+
+    .nav-item span:last-child {
+        font-size: 12px;
+    }
+
+    .nav-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+    }
+
+    .logout-btn {
+        display: none;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .org-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-content {
+        padding: 24px 20px;
+    }
+
+    .data-table {
+        font-size: 12px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 10px 8px;
+    }
+
+    .achievements-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* 3. Превью в форме (большой кружок) */
+#avatarPreview {
+    width: 140px !important;
+    height: 140px !important;
+    min-width: 140px !important;
+    min-height: 140px !important;
+    max-width: 140px !important;
+    max-height: 140px !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+    background: #f0f0f0;
+    position: relative;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+#avatarPreview img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+    position: relative;
+    z-index: 2;
+}
+
+#avatarPreview.has-image svg,
+#avatarPreview.has-image .user-avatar-large {
+    display: none !important;
+}
+
+/* Оверлей с камерой */
+#avatarPreview .avatar-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 3;
+    cursor: pointer;
+}
+
+#avatarPreview:hover .avatar-overlay {
+    opacity: 1;
+}
+
+/* Обёртка аватара в форме */
+.profile-avatar-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.avatar-controls {
+    text-align: center;
+}
+
+.avatar-hint-text {
+    font-size: 14px;
+    color: #333;
+    margin: 0 0 4px 0;
+}
+
+.avatar-hint-size {
+    font-size: 12px;
+    color: #888;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.btn-remove-avatar {
+    padding: 8px 20px;
+    background: transparent;
+    border: 1px solid #c62828;
+    color: #c62828;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-remove-avatar:hover {
+    background: #ffebee;
+}
+
+/* ===== МОДАЛЬНОЕ ОКНО: ОТМЕТКА СДАЧИ ===== */
+
+/* Затемнённый фон-оверлей */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    padding: 20px;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: #ffffff;
+    border-radius: 24px;
+    max-width: 480px;
+    width: 100%;
+    padding: 32px;
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0);
+}
+
+.modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    background: #ffffff;
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    color: #609432;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: #333;
+}
+
+.modal-content h3 {
+    text-align: center;
+    margin: 0 0 24px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #000000;
+    padding-right: 20px;
+}
+
+.modal-content .form-group {
+    margin-bottom: 20px;
+}
+
+.modal-content .form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 8px;
+}
+
+.modal-content .form-group input,
+.modal-content .form-group select,
+.modal-content .form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #c5c5c5;
+    border-radius: 12px;
+    font-family: "TTDaysSans", sans-serif;
+    font-size: 14px;
+    color: #333;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none;
+}
+
+.modal-content .form-group select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    cursor: pointer;
+}
+
+.modal-content .form-group input:focus,
+.modal-content .form-group select:focus,
+.modal-content .form-group textarea:focus {
+    outline: none;
+    border-color: #609432;
+}
+
+/* Плейсхолдеры */
+.modal-content .form-group input::placeholder,
+.modal-content .form-group textarea::placeholder {
+    color: #333;
+}
+
+/* Строка с двумя полями в ряд (Вес + Сумма) */
+.modal-content .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* Кнопка отправки формы */
+.modal-content .form-actions {
+    margin-top: 28px;
+    display: flex;
+    justify-content: center;
+}
+
+.modal-content .btn-primary {
+    padding: 14px 32px;
+    background: #609432;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-family: "TTDaysSans", sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 160px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content .btn-primary:hover {
+    background: #426623;
+}
+
+/* Адаптив для мобильных */
+@media (max-width: 520px) {
+    .modal-content {
+        padding: 24px 20px;
+        max-width: 100%;
+    }
+
+    .modal-content h3 {
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+
+    .modal-content .form-row {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .modal-content .btn-primary {
+        width: 100%;
+        min-width: auto;
+    }
+
+    .modal-content .form-actions {
+        justify-content: center;
+    }
+}
+
+/* ===== СИСТЕМА УВЕДОМЛЕНИЙ (ТОСТЫ) ===== */
+
+.toast-notification {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    max-width: 420px;
+    min-width: 320px;
+    padding: 20px 24px;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    font-family: "TTDaysSans", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #000;
+    z-index: 10000;
+    animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid #8888883a;
+    border-left: 4px solid #609432;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+}
+
+.toast-notification.hide {
+    animation: slideOutRight 0.3s ease forwards;
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+/* Типы уведомлений */
+.toast-notification.success {
+    border-left-color: #609432;
+}
+
+.toast-notification.error {
+    border-left-color: #609432;
+}
+
+.toast-notification.warning {
+    border-left-color: #609432;
+}
+
+.toast-notification.info {
+    border-left-color: #609432;
+}
+
+.toast-notification.tip {
+    border-left-color: #609432;
+}
+
+.toast-notification.achievement {
+    border-left-color: #609432;
+}
+
+/* Иконка */
+.toast-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.toast-notification.success .toast-icon {
+    background: #ffffff;
+}
+
+.toast-notification.error .toast-icon {
+    background: #ffebee;
+}
+
+.toast-notification.warning .toast-icon {
+    background: #fff3e0;
+}
+
+.toast-notification.info .toast-icon {
+    background: #e3f2fd;
+}
+
+.toast-notification.tip .toast-icon {
+    background: #f1f8e9;
+}
+
+/* Контент */
+.toast-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.toast-title {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 4px;
+    color: #000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toast-message {
+    color: #555;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.toast-tip {
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: #e8f5e3;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #2e7d32;
+    font-weight: 500;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.toast-tip::before {
+    content: '💡';
+    flex-shrink: 0;
+}
+
+/* Прогресс-бар */
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: #609432;
+    border-radius: 0 0 16px 16px;
+    animation: progress 4s linear;
+}
+
+.toast-notification.error .toast-progress {
+    background: #609432;
+}
+
+.toast-notification.warning .toast-progress {
+    background: #609432;
+}
+
+/* Кнопка закрытия */
+.toast-close {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: #f0f0f0;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #666;
+    transition: all 0.2s;
+    padding: 0;
+    line-height: 1;
+}
+
+.toast-close:hover {
+    background: #e0e0e0;
+    color: #000;
+}
+
+/* Стек уведомлений */
+.toast-stack {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 12px;
+}
+
+/* Анимации */
+@keyframes slideInRight {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+}
+
+@keyframes progress {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}
+
+@keyframes glow {
+    from {
+        box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+    }
+    to {
+        box-shadow: 0 10px 40px rgba(255, 215, 0, 0.6);
+    }
+}
+
+/* Мобильная версия */
+@media (max-width: 480px) {
+    .toast-notification {
+        right: 10px;
+        left: 10px;
+        bottom: 80px;
+        max-width: none;
+        min-width: auto;
+        border-radius: 16px;
+    }
+    
+    .toast-stack {
+        right: 10px;
+        left: 10px;
+        bottom: 80px;
+    }
+}

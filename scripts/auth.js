@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initPasswordToggles();
     initLoginForm();
     initRegisterForm();
+    initAuthButton();
 });
 
 // вход и регистрация 
@@ -121,6 +122,101 @@ function initRegisterForm() {
         form.reset();
         document.querySelector('.switch-to-login')?.click();
     });
+}
+
+// ===== ИНИЦИАЛИЗАЦИЯ КНОПКИ В ШАПКЕ =====
+function initAuthButton() {
+    const btn = document.getElementById('authButton');
+    if (!btn) {
+        console.warn('⚠️ Кнопка #authButton не найдена на этой странице');
+        return;
+    }
+
+    const rawUser = localStorage.getItem('ck_currentUser');
+    const savedAvatar = localStorage.getItem('ck_userAvatar');
+
+    console.log('initAuthButton вызван. User:', rawUser, 'Avatar:', savedAvatar);
+
+    if (rawUser) {
+        try {
+            const user = JSON.parse(rawUser);
+            
+            // Всегда показываем иконку человечка
+            btn.innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            `;
+            
+            // Если есть аватар — добавляем его
+            if (savedAvatar) {
+                const img = document.createElement('img');
+                img.src = savedAvatar;
+                img.alt = 'Аватар';
+                btn.appendChild(img);
+                btn.classList.add('is-logged-in');
+                console.log('✅ Показываем аватар');
+            } else {
+                btn.classList.remove('is-logged-in');
+                console.log('👤 Показываем иконку (нет аватара)');
+            }
+            
+            btn.onclick = () => window.location.href = 'dashboard.html';
+            
+        } catch (e) {
+            console.error('Ошибка:', e);
+            btn.innerHTML = 'Вход';
+            btn.classList.remove('is-logged-in');
+            btn.onclick = () => window.location.href = 'profile.html';
+        }
+    } else {
+        btn.innerHTML = 'Вход';
+        btn.classList.remove('is-logged-in');
+        btn.onclick = () => window.location.href = 'profile.html';
+        console.log('🔘 Показываем "Вход"');
+    }
+}
+
+// Убедитесь что эта функция в конце auth.js вызывается:
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAuthButton);
+} else {
+    initAuthButton();
+}
+
+// ===== ЗАГРУЗКА АВАТАРА =====
+function loadAvatarToButton() {
+    const btn = document.getElementById('authButton');
+    if (!btn) return;
+    
+    const saved = localStorage.getItem('ck_userAvatar');
+    const currentUser = localStorage.getItem('ck_currentUser');
+    
+    if (saved && currentUser) {
+        btn.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <img src="${saved}" alt="Аватар" />
+        `;
+        btn.classList.add('is-logged-in');
+        console.log('✅ Аватар загружен');
+    }
+}
+
+// Вызываем после initAuthButton
+document.addEventListener('DOMContentLoaded', () => {
+    initAuthButton();
+    setTimeout(loadAvatarToButton, 100); // Небольшая задержка, чтобы auth.js успел отработать
+});
+
+// Надёжный запуск
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAuthButton);
+} else {
+    initAuthButton();
 }
 
 // для доступа

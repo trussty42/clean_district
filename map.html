@@ -129,7 +129,7 @@
                                     </label>
                                 </div>
                                 
-                                <!-- ✅ Блок выбора времени (скрыт по умолчанию) -->
+                                <!-- Блок выбора времени (скрыт по умолчанию) -->
                                 <div class="custom-time-picker" id="customTimePicker" style="display: none; margin-top: 16px; padding: 16px; background: #f8faf8; border-radius: 12px;">
                                     <div class="time-picker-row">
                                         <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600;">Дата:</label>
@@ -200,6 +200,26 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Боковая панель с информацией -->
+                <aside class="point-side-panel" id="pointSidePanel">
+                    <button class="panel-close" onclick="closeSidePanel()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                    
+                    <div class="panel-content" id="panelContent">
+                        <!-- Заполняется через JS -->
+                    </div>
+
+                    <div class="panel-footer">
+                        <button class="panel-btn panel-btn-primary btn-review-full" onclick="openReviewForm()">
+                            Написать отзыв
+                        </button>
+                    </div>
+                </aside>
             </section>
         </main>
 

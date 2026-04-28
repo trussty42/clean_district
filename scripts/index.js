@@ -12,8 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. "Читать полностью" в новостях
     initNewsToggle();
     
-    // 5. Кнопка входа/профиля
-    setTimeout(initAuthButton, 100);
+    // 5. Кнопка входа/профиля — ТЕПЕРЬ БЕРЁМ ИЗ auth.js
+    if (typeof initAuthButton === 'function') {
+        initAuthButton();
+    }
 });
 
 function setActiveLink() {
@@ -91,21 +93,3 @@ function initNewsToggle() {
         });
     });
 }
-
-function initAuthButton() {
-    const btn = document.getElementById('authButton');
-    if (!btn) return;
-    
-    const currentUser = localStorage.getItem('ck_currentUser');
-    
-    if (currentUser) {
-        btn.className = 'header__button-login profile-mode';
-        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
-        btn.onclick = (e) => { e.preventDefault(); window.location.href = 'dashboard.html'; };
-    } else {
-        btn.className = 'header__button-login';
-        btn.textContent = 'Вход';
-        btn.onclick = (e) => { e.preventDefault(); window.location.href = 'profile.html'; };
-    }
-}
- 
