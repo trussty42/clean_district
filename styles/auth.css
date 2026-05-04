@@ -1,0 +1,370 @@
+.auth-layout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100dvh;
+    padding: 40px;
+    box-sizing: border-box;
+}
+
+.auth-image-wrapper {
+    width: 600px;
+    height: 800px;
+    border-radius: 24px 0 0 24px;
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+    background: #000;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.auth-image { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover;
+    display: block;
+}
+
+.auth-form-wrapper {
+    flex: 1;
+    height: 800px;
+    max-width: 600px;
+    background: #ffffff;
+    border-radius: 0 24px 24px 0;
+    overflow-y: auto;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+    
+    /* Центрирование содержимого формы */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+    box-sizing: border-box;
+
+    scrollbar-width: thin;
+    scrollbar-color: #609432 transparent;
+}
+
+.auth-form-container {
+    flex: 1;                  
+    display: flex;
+    flex-direction: column;
+    justify-content: center;   
+    padding: 0 40px;           
+}
+
+.auth-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 10px;
+    text-decoration: none;
+    color: #609432;
+    font-weight: 900;
+    font-size: 16px;
+    line-height: 1;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.auth-logo img { 
+    width: 48px; 
+    height: 48px; 
+}
+
+.auth-form-container { 
+    width: 100%; 
+}
+
+.auth-form { 
+    display: none; 
+}
+
+.auth-form.active { 
+    display: block; 
+    animation: fadeIn 0.4s ease; 
+}
+
+.auth-title {
+    font-size: 1.6rem; 
+    font-weight: 900; 
+    text-transform: uppercase;
+    margin-bottom: 28px; 
+    text-align: center; 
+    letter-spacing: 0.5px;
+    color: #000000;
+}
+
+.form-group { 
+    margin-bottom: 18px; 
+}
+
+.form-group label { 
+    display: block; 
+    margin-bottom: 8px; 
+    font-weight: 500;
+    font-size: 15px; 
+}
+
+.form-group input {
+    box-sizing: border-box;
+    width: 100%; 
+    padding: 14px 16px; 
+    border: 1px solid #c5c5c5;
+    border-radius: 12px; 
+    font-size: 15px; 
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus { 
+    outline: none; 
+    border-color: #609432; 
+    box-shadow: 0 0 0 3px rgba(96,148,50,0.15); 
+}
+
+.form-group-password {
+    display: flex;
+    gap: 5px;
+}
+
+.form-hint {
+    display: block;
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+.password-input-wrapper { 
+    position: relative; 
+}
+
+.password-input-wrapper input { 
+    padding-right: 48px; 
+}
+
+.toggle-password {
+    position: absolute; 
+    right: 14px; 
+    top: 50%; 
+    transform: translateY(-50%);
+    background: none; 
+    border: none; 
+    cursor: pointer; 
+    padding: 4px; 
+    color: #888;
+}
+
+.toggle-password:hover { 
+    color: #333; 
+}
+
+.toggle-password svg { 
+    width: 20px; 
+    height: 20px; 
+}
+
+.hidden { 
+    display: none !important; 
+}
+
+.form-options { 
+    width: 100%;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 22px; 
+    font-size: 14px; 
+    gap: 136px;
+}
+
+.checkbox-label { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    cursor: pointer; 
+    color: #555; 
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.checkbox-label input { 
+    width: 16px; 
+    height: 16px; 
+    accent-color: #609432; 
+    cursor: pointer; 
+}
+
+.form-options .link {
+    margin-left: auto;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.link { 
+    color: #609432; 
+    text-decoration: none; 
+    font-weight: 500; 
+}
+
+.link:hover { 
+    text-decoration: underline; 
+}
+
+.btn-primary {
+    background: #609432; 
+    color: #fff; 
+    border: none; 
+    padding: 15px;
+    border-radius: 100px; 
+    font-size: 16px; 
+    font-weight: 600; 
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s; 
+    font-family: inherit;
+}
+
+.btn-primary:hover { 
+    background: #4a7a26; 
+}
+
+.btn-primary:active { 
+    transform: scale(0.98); 
+}
+
+.btn-full { 
+    width: 100%; 
+    margin-top: 8px; 
+}
+
+.divider { 
+    display: flex; 
+    align-items: center; 
+    margin: 22px 0; 
+    color: #888; 
+    font-size: 14px; 
+}
+
+.divider::before, .divider::after { 
+    content: ""; 
+    flex: 1; 
+    height: 1px; 
+    background: #e0e0e0; 
+}
+
+.divider span { 
+    padding: 0 14px; 
+}
+
+.auth-footer { 
+    text-align: center; 
+    font-size: 14px; 
+    color: #555; 
+    margin-top: 0; 
+}
+
+.role-toggle { 
+    display: flex; 
+    gap: 10px; 
+    margin-bottom: 22px; 
+}
+
+.role-btn {
+    flex: 1; 
+    padding: 11px; 
+    border: 1.5px solid #609432; 
+    background: transparent;
+    color: #609432; 
+    border-radius: 100px; 
+    font-family: inherit; 
+    font-size: 15px;
+    font-weight: 500; 
+    cursor: pointer; 
+    transition: all 0.2s;
+}
+
+.role-btn.active { 
+    background: #609432; 
+    color: #fff; 
+    border-color: #609432; 
+}
+
+.role-btn:hover:not(.active) { 
+    background: #f0f7eb; 
+}
+
+.checkbox-group { 
+    margin: 18px 0 22px; 
+}
+
+.checkbox-group .checkbox-label { 
+    margin-bottom: 10px; 
+    font-size: 13.5px; 
+    line-height: 1.45; 
+}
+
+@keyframes fadeIn { 
+    from { 
+        opacity: 0; transform: translateY(12px); 
+    } 
+    to { 
+        opacity: 1; transform: translateY(0); 
+    } 
+}
+
+@media (max-width: 1024px) {
+    .auth-layout { 
+        flex-direction: column; 
+        padding: 20px;
+        gap: 24px;
+        overflow-y: auto;
+        min-height: auto;
+    }
+
+    .auth-image-wrapper { 
+        display: none;
+    }
+
+    .auth-form-wrapper { 
+        padding: 0 10px; 
+        max-width: 100%; 
+    }
+
+    .auth-logo { 
+        margin: 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-form-wrapper {
+        padding: 0;
+    }
+
+    .auth-title {
+        font-size: 1.5rem;
+    }
+
+    .role-toggle {
+        flex-direction: column;
+    }
+
+    .role-options {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .form-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .form-options .link {
+        margin-left: 0;
+        text-align: left;
+    }
+}
