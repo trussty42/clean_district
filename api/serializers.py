@@ -76,7 +76,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id',
             'username',
             'email',
             'first_name',
@@ -191,7 +190,7 @@ class PointWasteTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PointWasteTypes
         fields = (
-            'id', 'point', 'waste_name', 'waste_type',
+            'point', 'waste_name', 'waste_type',
             'waste_type_display', 'preparation', 'not_accepted',
             'photo', 'price', 'is_actual_price'
         )
@@ -215,15 +214,18 @@ class OrganizationNewsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrganizationNews
-        fields = ('id', 'title', 'text', 'is_published', 'created_at', 'image')
+        fields = ('title', 'text', 'is_published', 'created_at', 'image')
         read_only_fields = ('created_at',)
 
 
 class SubmissionHistorySerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+    point = serializers.StringRelatedField()
+    waste_type = serializers.StringRelatedField()
 
     class Meta:
         model = SubmissionHistory
-        fields = ('id', 'user', 'point', 'waste_type', 'weight', 'total_price', 'created_at')
+        fields = ('user', 'point', 'waste_type', 'weight', 'total_price', 'created_at')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -231,7 +233,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ('id', 'user', 'point', 'rating', 'text', 'created_at')
+        fields = ('user', 'point', 'rating', 'text', 'created_at')
         read_only_fields = ('user', 'created_at', 'is_published')
 
     def validate(self, data):

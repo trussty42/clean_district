@@ -6,10 +6,12 @@ from api.serializers import (OrganizationNewsSerializer,
                              UserProfileSerializer, UserRegistrationSerializer,
                              ReviewSerializer)
 from api.service import has_organization_rights
+from api.filters import PickUpPointFilter, WasteTypesFilter
 from config.constants import COMPANY_LEADER
 from django.contrib.auth import authenticate
 from django.db import transaction
-from django.db.models import Avg
+from django.db.models import Avg, Q
+from django_filters.rest_framework import DjangoFilterBackend
 from news.models import OrganizationNews
 from points.models import PickUpPoint, PointWasteTypes, SubmissionHistory
 from rest_framework import status
@@ -104,9 +106,16 @@ class PointViewSet(ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     lookup_field = 'inn'
     http_method_names = ['post', 'get', 'patch', 'head', 'options', 'delete']
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PickUpPointFilter
 
     def get_queryset(self):
-        return PickUpPoint.objects.annotate(rating_avg=Avg('review__rating'))
+        return PickUpPoint.objects.annotate(
+        avg_rating=Avg(
+            'review__rating', 
+            filter=Q(review__is_published=True)
+        )
+    ).distinct()
 
     def perform_create(self, serializer):
         organization = serializer.validated_data.get('organization')
@@ -143,6 +152,8 @@ class WasteTypesViewSet(ModelViewSet):
     serializer_class = PointWasteTypeSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     http_method_names = ['post', 'get', 'patch', 'head', 'options', 'delete']
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = WasteTypesFilter
 
     def get_queryset(self):
         return PointWasteTypes.objects.select_related(
