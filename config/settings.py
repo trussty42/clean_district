@@ -21,6 +21,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_filters',
+    'drf_yasg',
     'django.contrib.postgres',
     'django.contrib.gis',
     'phonenumber_field',
@@ -32,7 +34,6 @@ INSTALLED_APPS = [
     'points.apps.PointsConfig',
     'reviews.apps.ReviewsConfig',
     'users.apps.UsersConfig',
-    'waste_types.apps.WasteTypesConfig',
 ]
 
 MIDDLEWARE = [
@@ -85,7 +86,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 

@@ -2,7 +2,6 @@ from django.db import models
 
 from points.models import PickUpPoint
 from users.models import User
-from waste_types.models import WasteType
 
 
 class Review(models.Model):
@@ -24,32 +23,6 @@ class Review(models.Model):
         verbose_name_plural = 'Отзывы'
         unique_together = ('user', 'point')
         default_related_name = 'review'
-
-
-class VisitHistory(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    point = models.ForeignKey(PickUpPoint, on_delete=models.CASCADE)
-    waste_types = models.ForeignKey(WasteType, on_delete=models.CASCADE)
-    total_weight_kg = models.DecimalField(
-        max_digits=8,
-        decimal_places=3,
-        default=0,
-        verbose_name='Итоговый вес'
-    )
-    earnings_rub = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0,
-        verbose_name='Итоговая сумма'
-    )
-    visited_at = models.DateTimeField(
-        auto_now_add=True, verbose_name='Посещено'
-    )
-
-    class Meta:
-        verbose_name = 'Посещение'
-        verbose_name = 'Посещения'
-        default_related_name = 'visits'
 
 
 class ModerationLog(models.Model):

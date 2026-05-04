@@ -2,24 +2,12 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
-USER = 'user'
-COMPANY_EMPLOYEE = 'employee'
-COMPANY_LEADER = 'leader'
-MODERATOR = 'moderator'
-ADMIN = 'admin'
-
-
-ROLE_CHOICES = {
-    USER: 'Пользователь',
-    COMPANY_EMPLOYEE: 'Работник',
-    COMPANY_LEADER: 'Директор',
-    MODERATOR: 'Модератор',
-    ADMIN: 'Администратор'
-}
+from config.constants import (ORGANIZATION_CHOICES, ORGANIZATION_STATUSES,
+                              ROLE_CHOICES)
 
 
 class User(AbstractUser):
-    email = models.EmailField(verbose_name='Почта')
+    email = models.EmailField(verbose_name='Почта', unique=True)
     first_name = models.CharField(
         max_length=50, blank=True, null=True, verbose_name='Имя'
     )
@@ -43,28 +31,39 @@ class User(AbstractUser):
         default=0,
         verbose_name='Всего посещено пунктов'
     )
-    role = models.CharField('Роль', choices=ROLE_CHOICES, null=True, blank=True)
+    role = models.CharField(
+        'Роль',
+        choices=ROLE_CHOICES,
+        null=True,
+        blank=True
+    )
 
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
-        constraints = (
-            models.UniqueConstraint(
-                fields=('email',),
-                name='unique_email'
-            ),
-        )
 
     def __str__(self):
         return self.username
 
+    @property
+    def has_organization(self):
+        return self.user.organization.exist()
+
 
 class Organization(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    name = models.CharField(max_length=255, verbose_name='Название')
-    inn = models.CharField(max_length=12, verbose_name='ИНН')
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='organization'
+    )
+    name = models.CharField(
+        max_length=255, verbose_name='Название', unique=True
+    )
+    inn = models.CharField(max_length=12, verbose_name='ИНН', unique=True)
     phone = PhoneNumberField(verbose_name='Номер телефона')
-    email = models.EmailField(verbose_name='Почта')
+    email = models.EmailField(verbose_name='Почта', unique=True)
     logo = models.ImageField(
         upload_to='organizations/', verbose_name='Логотип'
     )
@@ -84,11 +83,7 @@ class Organization(models.Model):
     )
     status = models.CharField(
         max_length=20,
-        choices=[
-            ('pending', 'На проверке'),
-            ('active', 'Активна'),
-            ('blocked', 'Заблокирована')
-        ],
+        choices=ORGANIZATION_STATUSES,
         default='pending',
         verbose_name='Статус'
     )
@@ -99,3 +94,18 @@ class Organization(models.Model):
 
     def __str__(self):
         return f'{self.name}'
+
+
+class Employee(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    role_in_organization = models.CharField(
+        'Роль в организации', choices=ORGANIZATION_CHOICES, default='employee'
+    )
+
+    class Meta:
+        default_related_name = 'employee'
+        unique_together = ('user', 'organization')
+
+    def __str__(self):
+        return f'{self.user.username} - {self.organization.name}'
