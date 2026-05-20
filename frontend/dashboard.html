@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Личный кабинет</title>
+        <link rel="stylesheet" href="./fonts/fonts.css" />
+        <link rel="stylesheet" href="./styles/style.css" />
+        <link rel="stylesheet" href="./styles/dashboard.css" />
+        <link rel="icon" href="./images/logo.svg" sizes="any">
+        <link rel="icon" href="./images/logo.svg" type="image/svg+xml">
+        <script src="./scripts/auth.js" defer></script>
+        <script src="./scripts/toast.js" defer></script>
+        <script src="./scripts/dashboard.js" defer></script>
+    </head>
+    <body>
+        <header class="header">
+            <div class="container">
+                <a class="logo" href="index.html">
+                    <img src="./images/logo.svg" alt="Логотип" class="logo__icon"/>
+                    <div class="logo__text">
+                        <span>чистый</span>
+                        <span>квартал</span>
+                    </div>
+                </a>
+
+                <button class="header__burger" aria-label="Меню">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <div class="header__nav-group">
+                    <nav>
+                        <ul class="header__menu">
+                            <li class="header__menu-item">
+                                <a href="index.html" class="header__menu-link js-nav-link" data-page="index.html">Главная</a>
+                            </li>
+                            <li class="header__menu-item">
+                                <a href="map.html" class="header__menu-link js-nav-link" data-page="map.html">Карта</a>
+                            </li>
+                            <li class="header__menu-item">
+                                <a href="catalog.html" class="header__menu-link js-nav-link" data-page="catalog.html">Каталог</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                <div class="header__button">
+                    <button class="header__button-login" id="authButton"></button>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main">
+            <div class="dashboard-container">
+                <aside class="dashboard-sidebar">
+                    <div class="user-mini-profile">
+                    <div class="user-avatar" id="sidebarAvatar">
+                        <!-- Дефолтная иконка -->
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <div class="user-avatar-photo" id="sidebarAvatarPhoto">
+                        <!-- Сюда JS будет подставлять фото -->
+                        <img src="" class="avatar-img" />
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name" id="userName"></span>
+                        <span class="user-joined" id="userJoined"></span>
+                    </div>
+                </div>
+
+                    <nav class="dashboard-nav">
+                        <ul>
+                            <li class="nav-item active" data-tab="profile">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                <span>Личные данные</span>
+                            </li>
+                            <li class="nav-item" data-tab="history">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                <span>История сдач</span>
+                            </li>
+                            <li class="nav-item" data-tab="achievements">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                                </svg>
+                                <span>Достижения</span>
+                            </li>
+                            <li class="nav-item" data-tab="organizations">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"></path>
+                                    <path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"></path>
+                                </svg>
+                                <span>Мои организации</span>
+                                <span class="nav-badge" id="orgCount"></span>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <button class="logout-btn" id="logoutBtn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        Выйти
+                    </button>
+                </aside>
+
+                <section class="dashboard-content">
+                    <div class="tab-content active" id="profile-tab">
+                        <h2 class="dashboard-title">Личные данные</h2>
+                        
+                        <form class="profile-form" id="profileForm">
+                            
+                            <div class="profile-layout">
+                                
+                                <div class="profile-fields">
+                                    <div class="form-group">
+                                        <label>Логин *</label>
+                                        <input type="text" name="login" id="inputLogin" required/>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Email *</label>
+                                        <input type="email" name="email" id="inputEmail" required/>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Фамилия</label>
+                                        <input type="text" name="surname" id="inputSurname"/>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Имя</label>
+                                        <input type="text" name="name" id="inputName"/>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Отчество</label>
+                                        <input type="text" name="middle-name" id="inputMiddleName"/>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Город</label>
+                                        <input type="text" name="city" id="inputCity" />
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button type="submit" class="btn-primary">Сохранить изменения</button>
+                                        <span class="form-status" id="formStatus"></span>
+                                    </div>
+                                </div>
+
+                                <div class="profile-avatar-wrapper">
+                                    <div class="avatar-preview" id="avatarPreview">
+                                        <div class="user-avatar-large">
+                                            <!-- Иконка по умолчанию -->
+                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                <circle cx="12" cy="7" r="4"></circle>
+                                            </svg>
+                                        </div>
+                                        
+                                        <!-- Оверлей при наведении -->
+                                        <div class="avatar-overlay" onclick="document.getElementById('avatarInput').click()">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                                <circle cx="12" cy="13" r="4"></circle>
+                                            </svg>
+                                            <span>Изменить</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Скрытый инпут файла -->
+                                    <input type="file" id="avatarInput" accept="image/*" hidden />
+                                    
+                                    <div class="avatar-controls">
+                                        <p class="avatar-hint-text">Нажмите на аватар, чтобы загрузить фото</p>
+                                        <small class="avatar-hint-size">JPG, PNG до 5MB</small>
+                                        
+                                        <button type="button" class="btn-remove-avatar" id="removeAvatar" style="display: none;">
+                                            Удалить фото
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="tab-content" id="history-tab">
+                        <div class="history-header-info">
+                            <h2 class="dashboard-title">История сдач</h2>
+                            <p class="history-hint">Заявка отправляется на проверку пункту приёма. Статус обновится после подтверждения организации или автоматически через 7 дней.</p>
+                        </div>
+                        <div class="org-header">
+                            <button class="btn-primary btn-add-submission" id="addSubmissionBtn">Отметить сдачу</button>
+                        </div>
+                        
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Дата</th>
+                                        <th>Пункт</th>
+                                        <th>Тип отхода</th>
+                                        <th>Вес</th>
+                                        <th>Сумма</th>
+                                        <th>Статус</th>
+                                        <th>Обратная связь</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBody">
+                                    <!-- Заполняется через JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="achievements-tab">
+                        <h2 class="dashboard-title">Достижения</h2>
+                        
+                        <div class="achievements-grid" id="achievementsGrid">
+                            <!-- Заполняется через JS -->
+                        </div>
+                    </div>
+
+
+                    <div class="tab-content" id="organizations-tab">
+                        <h2 class="dashboard-title">Мои организации</h2>
+                        <div class="org-header">
+                            <button class="btn-primary" id="createOrgBtn"> Создать организацию </button>
+                        </div>
+
+                        <!-- Список организаций -->
+                        <div class="org-list" id="orgList">
+                            <!-- Заполняется через JS -->
+                        </div>
+
+                        <!-- Пустое состояние -->
+                        <div class="org-empty" id="orgEmpty" style="display: none;">
+                            <h3>У вас пока нет организаций</h3>
+                            <p>Создайте свою первую организацию по приёму вторсырья или примите приглашение от другой.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer__container">
+                <div class="footer-top">
+                    <div class="footer-column">
+                        <div class="logo">
+                            <img src="./images/logo.svg" alt="Логотип" class="logo__icon"/>
+                            <div class="logo__text">
+                                <span>чистый</span>
+                                <span>квартал</span>
+                            </div>
+                        </div>
+                        <p class="footer-description">Платформа для утилизации и переработки отходов.</p>
+                    </div>
+                    <div class="footer-column">
+                        <h4 class="footer-heading">Навигация</h4>
+                        <ul class="footer-links">
+                            <li><a href="index.html">Главная</a></li>
+                            <li><a href="map.html">Карта</a></li>
+                            <li><a href="catalog.html">Каталог</a></li>
+                            <li><a href="profile.html">Личный кабинет</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4 class="footer-heading">Социальные сети</h4>
+                        <ul class="footer-contacts">
+                            <li>
+                                <a href="https://github.com/trussty42/chistiykvartal" class="social-link" title="GitHub">GitHub</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="footer-divider"></div>
+
+                <div class="footer-bottom">
+                    <div class="footer-copyright">
+                        <p>© 2026 Чистый квартал</p>
+                        <p class="university-info">
+                            ФГАОУ ВО «Уральский федеральный университет имени первого президента России <br> Б. Н. Ельцина»
+                        </p>
+                    </div>
+
+                    <div class="footer-legal">
+                        <a href="#">Политика конфиденциальности</a>
+                        <a href="#">Пользовательское соглашение</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Модальное окно создания организации -->
+        <div class="modal-overlay" id="createOrgModal">
+            <div class="modal-content">
+                <button class="modal-close" id="closeOrgModal">&times;</button>
+                <h3>Создание организации</h3>
+                <form id="createOrgForm">
+                    <div class="form-group">
+                        <label>Название организации</label>
+                        <input type="text" name="orgName" placeholder="Например: Эко-Урал" />
+                    </div>
+                    <div class="form-group">
+                        <label>ИНН</label>
+                        <input type="text" name="inn" pattern="[0-9]{10,12}" placeholder="10 или 12 цифр" required/>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Отправить на проверку</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Модальное окно создания заявки -->
+        <div class="modal-overlay" id="submissionModal">
+            <div class="modal-content">
+                <button class="modal-close" id="closeSubmissionModal">&times;</button>
+                <h3>Новая сдача</h3>
+                <form id="submissionForm">
+                    <div class="form-group">
+                        <label>Пункт приёма *</label>
+                        <select name="point" id="inputPoint" required>
+                            <option value="" disabled selected>Выберите пункт</option>
+                            <option value="Вторплюс">Вторплюс (ул. Ленина, 10)</option>
+                            <option value="ЭкоПункт">ЭкоПункт (ул. Мира, 25)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Тип отхода *</label>
+                        <select name="material" id="inputMaterial" required>
+                            <option value="" disabled selected>Выберите тип</option>
+                            <option value="Пластик">Пластик</option>
+                            <option value="Стекло">Стекло</option>
+                            <option value="Электроника">Электроника</option>
+                            <option value="Металл">Металл</option>
+                            <option value="Бумага">Бумага и картон</option>
+                            <option value="Мебель и крупногабарит">Мебель и крупногабарит</option>
+                            <option value="Текстиль">Текстиль</option>
+                            <option value="Батарейки">Батарейки</option>
+                            <option value="Строительный мусор">Строительный мусор</option>
+                            <option value="Дерево">Дерево</option>
+                            <option value="Автошины">Автошины</option>
+                            <option value="Лампочки">Лампочки</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Вес, кг *</label>
+                            <input type="number" step="0.1" name="weight" id="inputWeight" required placeholder="0.0" />
+                        </div>
+                        <div class="form-group">
+                            <label>Сумма, руб</label>
+                            <input type="number" name="sum" id="inputSum" placeholder="0" />
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Отправить на проверку</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Карта пунктов приёма</title>
+        <link rel="stylesheet" href="./fonts/fonts.css" />
+        <link rel="stylesheet" href="./styles/style.css" />
+        <link rel="stylesheet" href="./styles/map.css" />
+        <link rel="icon" href="./images/logo.svg" sizes="any">
+        <link rel="icon" href="./images/logo.svg" type="image/svg+xml">
+        <script src="https://api-maps.yandex.ru/2.1/?apikey=3c229f6e-bb1f-4615-8a4f-3cd8454c1172&lang=ru_RU" type="text/javascript"></script>
+        <script src="./scripts/auth.js" defer></script>
+        <script src="./scripts/index.js" defer></script>
+        <script src="./scripts/map.js" defer></script>
+    </head>
+    <body>
+        <header class="header">
+            <div class="container">
+                <a class="logo" href="index.html">
+                    <img src="./images/logo.svg" alt="Логотип" class="logo__icon"/>
+                    <div class="logo__text">
+                        <span>чистый</span>
+                        <span>квартал</span>
+                    </div>
+                </a>
+
+                <button class="header__burger" aria-label="Меню">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <div class="header__nav-group">
+                    <nav>
+                        <ul class="header__menu">
+                            <li class="header__menu-item">
+                                <a href="index.html" class="header__menu-link js-nav-link" data-page="index.html">Главная</a>
+                            </li>
+                            <li class="header__menu-item">
+                                <a href="map.html" class="header__menu-link js-nav-link" data-page="map.html">Карта</a>
+                            </li>
+                            <li class="header__menu-item">
+                                <a href="catalog.html" class="header__menu-link js-nav-link" data-page="catalog.html">Каталог</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                <div class="header__button">
+                    <button class="header__button-login" id="authButton">Вход</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <section class="map-section">
+                <h2 class="map-title">Пункты приёма</h2>
+        
+                <div class="map-search-top">
+                    <div class="map-input-wrapper">
+                        <input type="text" id="searchInput" placeholder="Найти пункт приёма...">
+                        <img src="./images/search.svg" class="search-icon" alt="Поиск">
+                    </div>
+                </div>
+                
+                
+
+                <div class="map-layout">
+                    <!-- Боковая панель с фильтрами -->
+                    <aside class="filters-sidebar" id="filtersSidebar">
+                        <div class="filters-header">
+                            <h3>Фильтры</h3>
+                            <button class="filters-close" id="filtersClose">&times;</button>
+                        </div>
+                        
+                        <div class="filters-content">
+                            <!-- Типы отходов -->
+                            <div class="filter-group">
+                                <h4>Типы отходов</h4>
+                                <div class="checkbox-list">
+                                    <label class="checkbox-item"><input type="checkbox" name="type"> Пластик</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type"> Стекло</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type"> Электроника</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type"> Металл</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type"> Бумага и картон</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type"> Мебель и крупногабарит</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type"> Текстиль</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type"> Батарейки</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type"> Строительный мусор</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type"> Дерево</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type"> Автошины</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type"> Лампочки</label>
+                                </div>
+                            </div>
+
+                            <!-- Радиус -->
+                            <div class="filter-group">
+                                <h4>Радиус от меня, км</h4>
+                                <div class="range-wrapper">
+                                    <input type="range" id="radiusRange" min="1" max="50" value="0">
+                                    <span class="range-value" id="radiusValue">0</span>
+                                </div>
+                            </div>
+
+                            <!-- Рейтинг -->
+                            <div class="filter-group">
+                                <h4>Рейтинг от</h4>
+                                <div class="range-wrapper">
+                                    <input type="range" id="ratingRange" min="0" max="5" step="0.5" value="0">
+                                    <span class="range-value" id="ratingValue">0</span>
+                                </div>
+                            </div>
+
+                            <!-- Время работы -->
+                            <div class="filter-group">
+                                <h4>Время работы</h4>
+                                <div class="radio-list">
+                                    <label class="radio-item">
+                                        <input type="radio" name="hours" value="now">
+                                        <span>открыто сейчас</span>
+                                    </label>
+                                    <label class="radio-item">
+                                        <input type="radio" name="hours" value="24">
+                                        <span>круглосуточно</span>
+                                    </label>
+                                    <label class="radio-item">
+                                        <input type="radio" name="hours" value="custom" id="customTimeRadio">
+                                        <span>открыто в указанное время</span>
+                                    </label>
+                                </div>
+                                
+                                <!-- Блок выбора времени (скрыт по умолчанию) -->
+                                <div class="custom-time-picker" id="customTimePicker" style="display: none; margin-top: 16px; padding: 16px; background: #f8faf8; border-radius: 12px;">
+                                    <div class="time-picker-row">
+                                        <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600;">Дата:</label>
+                                        <input type="date" id="customDate" class="time-input" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                                    </div>
+                                    
+                                    <div class="time-picker-row" style="margin-top: 12px;">
+                                        <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600;">Время:</label>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                            <div>
+                                                <label style="font-size: 12px; color: #666;">С</label>
+                                                <input type="time" id="timeFrom" class="time-input" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                                            </div>
+                                            <div>
+                                                <label style="font-size: 12px; color: #666;">До</label>
+                                                <input type="time" id="timeTo" class="time-input" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Кнопки -->
+                            <div class="filter-actions">
+                                <button class="btn-apply" id="applyFilters">Применить</button>
+                                <button class="btn-reset" id="resetFilters">Сбросить</button>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <div class="map-content">
+                        <div class="map-control">
+                            <div class="found-count">Найдено: <strong>2</strong> пункта</div>
+                            <!-- кАРТА И СПИСОК -->
+                            <div class="view-switcher">
+                                <input type="radio" id="viewMap" name="view" value="map" checked>
+                                <label for="viewMap" class="switch-label">
+                                    <span class="switch-text">Карта</span>
+                                </label>
+                                
+                                <input type="radio" id="viewList" name="view" value="list">
+                                <label for="viewList" class="switch-label">
+                                    <span class="switch-text">Список</span>
+                                </label>
+                                
+                                <div class="switch-slider"></div>
+                            </div>
+                        </div>
+                        <!-- Карта -->
+                        <div class="map-view active" id="mapView">
+                            <div id="map" class="map-container"></div>
+                        </div>
+
+                        <!-- Список -->
+                        <div class="list-view" id="listView">
+                            <div class="list-header">
+                                <select class="sort-select" id="sortSelect">
+                                    <option value="default">По умолчанию</option>
+                                    <option value="name-asc">По названию А-Я</option>
+                                    <option value="name-desc">По названию Я-А</option>
+                                    <option value="rating">По рейтингу</option>
+                                    <option value="distance">По расстоянию</option>
+                                </select>
+                            </div>
+                            <div class="list-content" id="listContent">
+                                <!-- Пункты будут генерироваться здесь -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Боковая панель с информацией -->
+                <aside class="point-side-panel" id="pointSidePanel">
+                    <button class="panel-close" onclick="closeSidePanel()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                    
+                    <div class="panel-content" id="panelContent">
+                        <!-- Заполняется через JS -->
+                    </div>
+
+                    <div class="panel-footer">
+                        <button class="panel-btn panel-btn-primary btn-review-full" onclick="openReviewForm()">
+                            Написать отзыв
+                        </button>
+                    </div>
+                </aside>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="footer__container">
+                <div class="footer-top">
+                    <div class="footer-column">
+                        <div class="logo">
+                            <img src="./images/logo.svg" alt="Логотип" class="logo__icon"/>
+                            <div class="logo__text">
+                                <span>чистый</span>
+                                <span>квартал</span>
+                            </div>
+                        </div>
+                        <p class="footer-description">Платформа для утилизации и переработки отходов.</p>
+                    </div>
+                    <div class="footer-column">
+                        <h4 class="footer-heading">Навигация</h4>
+                        <ul class="footer-links">
+                            <li><a href="index.html">Главная</a></li>
+                            <li><a href="map.html">Карта</a></li>
+                            <li><a href="catalog.html">Каталог</a></li>
+                            <li><a href="profile.html">Личный кабинет</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4 class="footer-heading">Социальные сети</h4>
+                        <ul class="footer-contacts">
+                            <li>
+                                <a href="https://github.com/trussty42/chistiykvartal" class="social-link" title="GitHub">GitHub</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="footer-divider"></div>
+
+                <div class="footer-bottom">
+                    <div class="footer-copyright">
+                        <p>© 2026 Чистый квартал</p>
+                        <p class="university-info">
+                            ФГАОУ ВО «Уральский федеральный университет имени первого президента России <br> Б. Н. Ельцина»
+                        </p>
+                    </div>
+
+                    <div class="footer-legal">
+                        <a href="#">Политика конфиденциальности</a>
+                        <a href="#">Пользовательское соглашение</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Кабинет организации — Чистый квартал</title>
+    <link rel="stylesheet" href="./fonts/fonts.css" />
+    <link rel="stylesheet" href="./styles/style.css" />
+    <link rel="stylesheet" href="./styles/dashboard.css" />
+    <link rel="stylesheet" href="./styles/org-dashboard.css" />
+    <link rel="icon" href="./images/logo.svg" type="image/svg+xml">
+    <script src="./scripts/auth.js" defer></script>
+    <script src="./scripts/org-dashboard.js" defer></script>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a class="logo" href="index.html">
+                <img src="./images/logo.svg" alt="Логотип" class="logo__icon"/>
+                <div class="logo__text">
+                    <span>чистый</span>
+                    <span>квартал</span>
+                </div>
+            </a>
+
+            <button class="header__burger" aria-label="Меню">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <div class="header__nav-group">
+                <nav>
+                    <ul class="header__menu">
+                        <li class="header__menu-item">
+                            <a href="index.html" class="header__menu-link js-nav-link" data-page="index.html">Главная</a>
+                        </li>
+                        <li class="header__menu-item">
+                            <a href="map.html" class="header__menu-link js-nav-link" data-page="map.html">Карта</a>
+                        </li>
+                        <li class="header__menu-item">
+                            <a href="catalog.html" class="header__menu-link js-nav-link" data-page="catalog.html">Каталог</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="header__button">
+                <button class="header__button-login js-auth-btn" id="authButton">Вход</button>
+            </div>
+        </div>
+    </header>
+
+
+    <main class="org-main">
+        <div class="org-container">
+            <!-- Боковая панель организации -->
+            <aside class="org-sidebar">
+                <div class="org-mini-profile">
+                    <div class="org-logo" id="orgLogoPreview">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/>
+                        </svg>
+                    </div>
+                    <div class="org-info">
+                        <span class="org-name" id="orgNameDisplay">Загрузка...</span>
+                        <span class="org-status-badge" id="orgStatusBadge">На проверке</span>
+                    </div>
+                </div>
+
+                <nav class="org-nav">
+                    <ul>
+                        <li class="org-nav-item active" data-tab="profile">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span>Личные данные</span>
+                        </li>
+                        <li class="org-nav-item" data-tab="points">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <span>Пункты приёма</span>
+                        </li>
+                        <li class="org-nav-item" data-tab="feedback">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            <span>Обратная связь</span>
+                        </li>
+                        <li class="org-nav-item" data-tab="news">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                            </svg>
+                            <span>Новости и акции</span>
+                        </li>
+                        <li class="org-nav-item" data-tab="analytics">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="20" x2="18" y2="10"></line>
+                                <line x1="12" y1="20" x2="12" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="14"></line>
+                            </svg>
+                            <span>Аналитика</span>
+                        </li>
+                        <li class="org-nav-item" data-tab="employees">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <span>Сотрудники</span>
+                        </li>
+                    </ul>
+                </nav>
+
+                <button class="org-logout-btn" id="orgLogoutBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Выйти
+                </button>
+            </aside>
+
+            <!-- Контент -->
+            <section class="org-content">
+                <!-- Вкладка: Личные данные -->
+                <div class="org-tab-content active" id="org-profile-tab">
+                    <h2 class="org-title">Личные данные организации</h2>
+                    
+                    <form class="org-form" id="orgProfileForm">
+                        
+                        <div class="profile-layout">
+                            
+                            <!-- Поля формы -->
+                            <div class="profile-fields">
+                                
+                                <div class="form-group">
+                                    <label>Название организации *</label>
+                                    <input type="text" id="orgInputName" required/>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>ИНН *</label>
+                                    <input type="text" id="orgInputInn" pattern="[0-9]{10,12}" placeholder="10 или 12 цифр" required readonly/>
+                                    <small class="form-hint">ИНН нельзя изменить после создания</small>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Телефон</label>
+                                        <input type="tel" id="orgInputPhone" placeholder="+7 (___) ___-__-__" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Email для связи</label>
+                                        <input type="email" id="orgInputEmail" placeholder="contact@example.com" />
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Сайт</label>
+                                    <input type="url" id="orgInputWebsite" placeholder="https://example.com" />
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Социальные сети</label>
+                                    <div class="social-links-inputs">
+                                        <div class="social-input-row">
+                                            <span class="social-icon">&nbsp&nbspВК&nbsp&nbsp</span>
+                                            <input type="url" id="orgInputVK" placeholder="https://vk.com/..." />
+                                        </div>
+                                        <div class="social-input-row">
+                                            <span class="social-icon">&nbsp&nbspТГ&nbsp&nbsp</span>
+                                            <input type="url" id="orgInputTG" placeholder="https://t.me/..." />
+                                        </div>
+                                        <div class="social-input-row">
+                                            <span class="social-icon">MAX</span>
+                                            <input type="url" id="orgInputMAX" placeholder="https://max.ru/..." />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn-primary">Сохранить изменения</button>
+                                    <span class="form-status" id="orgFormStatus"></span>
+                                </div>
+                            </div>
+
+                            <!-- Аватар организации (как у пользователя) -->
+                            <div class="profile-avatar-wrapper">
+                                <div class="avatar-preview" id="orgAvatarPreview">
+                                    <div class="user-avatar-large">
+                                        <!-- Иконка по умолчанию -->
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/>
+                                        </svg>
+                                    </div>
+                                    
+                                    <!-- Оверлей при наведении -->
+                                    <div class="avatar-overlay" onclick="document.getElementById('orgAvatarInput').click()">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                            <circle cx="12" cy="13" r="4"></circle>
+                                        </svg>
+                                        <span>Изменить</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Скрытый инпут файла -->
+                                <input type="file" id="orgAvatarInput" accept="image/*" hidden />
+                                
+                                <div class="avatar-controls">
+                                    <p class="avatar-hint-text">Нажмите на логотип, чтобы загрузить изображение</p>
+                                    <small class="avatar-hint-size">JPG, PNG до 5MB</small>
+                                    
+                                    <button type="button" class="btn-remove-avatar" id="orgRemoveAvatar" style="display: none;">
+                                        Удалить логотип
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Вкладка: Пункты приёма -->
+                <div class="org-tab-content" id="org-points-tab">
+                    <div class="history-header-info">
+                        <h2 class="org-title">Пункты приёма</h2>
+                        <p class="org-hint">Управляйте адресами, ценами и графиком работы ваших пунктов приёма.</p>
+                    </div>
+                    <div class="org-header">
+                        <button class="btn-primary" id="addPointBtn">Добавить филиал</button>
+                    </div>
+                    
+                    <div class="points-list" id="pointsList">
+                        <!-- Заполняется через JS -->
+                    </div>
+                </div>
+
+                <!-- Вкладка: Обратная связь -->
+                <div class="org-tab-content" id="org-feedback-tab">
+                    <h2 class="org-title">Отзывы пользователей</h2>
+                    <div class="feedback-list" id="feedbackList">
+                        <!-- Заполняется через JS -->
+                    </div>
+                </div>
+
+                <!-- Вкладка: Новости -->
+                <div class="org-tab-content" id="org-news-tab">
+                    <div class="history-header-info">
+                        <h2 class="org-title">Новости и акции</h2>
+                        <p class="org-hint">После публикации новость проходит модерацию и может появиться на главной странице.</p>
+                    </div>
+                    <div class="org-header">
+                        <button class="btn-primary" id="addNewsBtn">Написать новость</button>
+                    </div>
+                    
+                    <div class="news-list" id="newsList">
+                        <!-- Заполняется через JS -->
+                    </div>
+                </div>
+
+                <!-- Вкладка: Аналитика -->
+                <div class="org-tab-content" id="org-analytics-tab">
+                    <h2 class="org-title">Аналитика пунктов</h2>
+                    <p class="org-hint">Статистика обновляется ежедневно.</p>
+                    
+                    <!-- 3 основные метрики -->
+                    <div class="analytics-cards">
+                        <div class="analytics-card">
+                            <span class="analytics-value" id="totalViews">0</span>
+                            <span class="analytics-label">Просмотры карточек пунктов</span>
+                        </div>
+                        <div class="analytics-card">
+                            <span class="analytics-value" id="totalSubmissions">0</span>
+                            <span class="analytics-label">Общее количество сдач</span>
+                        </div>
+                        <div class="analytics-card">
+                            <span class="analytics-value" id="avgRating">0.0</span>
+                            <span class="analytics-label">Средний рейтинг пункта</span>
+                        </div>
+                    </div>
+
+                    <!-- Сданный вес по типам -->
+                    <div class="analytics-section">
+                        <h3 class="analytics-subtitle">Сданный вес по типам отходов</h3>
+                        <div class="weight-chart" id="weightChart"></div>
+                    </div>
+
+                    <!-- Распределение оценок -->
+                    <div class="analytics-section">
+                        <h3 class="analytics-subtitle">Распределение оценок</h3>
+                        <div class="rating-distribution" id="ratingDistribution"></div>
+                    </div>
+                </div>
+
+                <!-- Вкладка: Сотрудники -->
+                <div class="org-tab-content" id="org-employees-tab">
+                    <div class="org-header-row">
+                        <h2 class="org-title">Сотрудники</h2>
+                        <button class="btn-primary" id="inviteEmployeeBtn" style="display: none;">
+                            Пригласить сотрудника
+                        </button>
+                    </div>
+                    <p class="org-hint">Управляйте доступом участников вашей организации.</p>
+                    
+                    <div class="employees-list" id="employeesList">
+                        <!-- Заполняется через JS -->
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Модальное окно: Добавить пункт -->
+    <div class="modal-overlay" id="addPointModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closePointModal">&times;</button>
+            <div class="modal-body">
+                <h3>Новый пункт приёма</h3>
+                <form id="addPointForm">
+                    
+                    <!-- Название (по умолчанию = Название организации) -->
+                    <div class="form-group">
+                        <label>Название пункта</label>
+                        <input type="text" name="pointName" id="inputPointName" required readonly />
+                        <small class="form-hint">Совпадает с названием организации</small>
+                    </div>
+
+                    <!-- Адрес -->
+                    <div class="form-group">
+                        <label>Адрес</label>
+                        <input type="text" name="address" required placeholder="г. Екатеринбург, ул. Ленина, д. 10" />
+                    </div>
+
+                    <div class="form-row">
+                        <!-- Время работы -->
+                        <div class="form-group">
+                            <label>График работы</label>
+                            <input type="text" name="schedule" placeholder="Пн-Пт 9:00-18:00" />
+                        </div>
+                        <!-- Контакты -->
+                        <div class="form-group">
+                            <label>Телефон</label>
+                            <input type="tel" name="phone" placeholder="+7 (___) ___-__-__" />
+                        </div>
+                    </div>
+
+                    <!-- ДИНАМИЧЕСКИЙ БЛОК ЦЕН -->
+                    <div class="prices-block">
+                        <label class="prices-label">Цены за 1 кг (₽)</label>
+                        <div id="pricesList" class="prices-list">
+                            <!-- Строки будут добавляться сюда через JS -->
+                        </div>
+                        <button type="button" class="btn-add-price" id="addPriceRow">
+                            Добавить тип отхода
+                        </button>
+                    </div>
+
+                    <!-- Список подсказок для автодополнения -->
+                    <datalist id="wasteTypesOptions">
+                        <option value="Пластик">
+                        <option value="Бумага">
+                        <option value="Стекло">
+                        <option value="Металл">
+                        <option value="Дерево">
+                        <option value="Текстиль">
+                        <option value="Электроника">
+                        <option value="Опасные отходы">
+                        <option value="Строительный мусор">
+                    </datalist>
+
+                    <div class="form-actions" style="margin-top: 24px;">
+                        <button type="submit" class="btn-primary">Добавить пункт</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Просмотр и редактирование пункта -->
+    <div class="modal-overlay" id="editPointModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeEditPointModal">&times;</button>
+            <h3>Редактирование пункта</h3>
+            <form id="editPointForm">
+                <input type="hidden" id="editPointId" />
+                
+                <div class="form-group">
+                    <label>Название пункта</label>
+                    <input type="text" id="editPointName" readonly style="background:#f8f9fa; cursor:not-allowed;" />
+                </div>
+                
+                <div class="form-group">
+                    <label>Адрес *</label>
+                    <input type="text" id="editPointAddress" required />
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>График работы</label>
+                        <input type="text" id="editPointSchedule" placeholder="Пн-Пт 9:00-18:00" />
+                    </div>
+                    <div class="form-group">
+                        <label>Телефон</label>
+                        <input type="tel" id="editPointPhone" placeholder="+7 (___) ___-__-__" />
+                    </div>
+                </div>
+                
+                <div class="prices-block">
+                    <label class="prices-label">Цены за 1 кг (₽)</label>
+                    <div id="editPricesList" class="prices-list"></div>
+                    <button type="button" class="btn-add-price" id="addEditPriceRow">+ Добавить тип отхода</button>
+                </div>
+                
+                <div class="form-actions" style="margin-top:24px; display:flex; gap:12px; justify-content:space-between;">
+                    <button type="button" class="btn-small delete" id="deletePointFromModal" style="flex:1;">Удалить пункт</button>
+                    <button type="submit" class="btn-primary" style="flex:2;">Сохранить изменения</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Написать новость -->
+    <div class="modal-overlay" id="addNewsModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeNewsModal">&times;</button>
+            <h3>Новая новость</h3>
+            <form id="addNewsForm">
+                <div class="form-group">
+                    <label>Заголовок *</label>
+                    <input type="text" name="newsTitle" required />
+                </div>
+                <div class="form-group">
+                    <label>Текст *</label>
+                    <textarea name="newsText" rows="5" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Тип</label>
+                    <select name="newsType">
+                        <option value="news">Новость</option>
+                        <option value="promotion">Акция</option>
+                        <option value="announcement">Объявление</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Отправить на модерацию</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Пригласить сотрудника -->
+    <div class="modal-overlay" id="inviteModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeInviteModal">&times;</button>
+            <h3>Пригласить сотрудника</h3>
+            <form id="inviteForm">
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" name="email" required placeholder="user@example.com" />
+                </div>
+                <div class="form-group">
+                    <label>Роль</label>
+                    <select name="role">
+                        <option value="member">Участник</option>
+                        <option value="manager">Менеджер</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Отправить приглашение</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer__container">
+            <div class="footer-top">
+                <div class="footer-column">
+                    <div class="logo">
+                        <img src="./images/logo.svg" alt="Логотип" class="logo__icon"/>
+                        <div class="logo__text">
+                            <span>чистый</span>
+                            <span>квартал</span>
+                        </div>
+                    </div>
+                    <p class="footer-description">Платформа для утилизации и переработки отходов.</p>
+                </div>
+                <div class="footer-column">
+                    <h4 class="footer-heading">Навигация</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Главная</a></li>
+                        <li><a href="map.html">Карта</a></li>
+                        <li><a href="catalog.html">Каталог</a></li>
+                        <li><a href="profile.html">Личный кабинет</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4 class="footer-heading">Социальные сети</h4>
+                    <ul class="footer-contacts">
+                        <li>
+                            <a href="https://github.com/trussty42/chistiykvartal" class="social-link" title="GitHub">GitHub</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-divider"></div>
+
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    <p>© 2026 Чистый квартал</p>
+                    <p class="university-info">
+                        ФГАОУ ВО «Уральский федеральный университет имени первого президента России <br> Б. Н. Ельцина»
+                    </p>
+                </div>
+
+                <div class="footer-legal">
+                    <a href="#">Политика конфиденциальности</a>
+                    <a href="#">Пользовательское соглашение</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

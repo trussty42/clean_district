@@ -1,0 +1,63 @@
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: postgres
+
+    env_file:
+      - .env
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    ports:
+      - "5432:5432"
+
+
+  backend:
+    build: ./backend
+    container_name: backend
+
+    expose:
+      - "8000"
+
+    env_file:
+      - .env
+
+    depends_on:
+      - postgres
+
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+
+    expose:
+      - "80"
+
+    depends_on:
+      - backend
+
+
+  nginx:
+    build: ./nginx
+    container_name: nginx
+
+    ports:
+      - "80:80"
+
+    depends_on:
+      - backend
+      - frontend
+
+    volumes:
+      - static_volume:/staticfiles
+      - media_volume:/media
