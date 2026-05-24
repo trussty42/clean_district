@@ -1,4 +1,4 @@
-const API_URL = 'http://127.0.0.1:8000/api/v1';
+const API_URL = '/api/v1';
 
 document.addEventListener('DOMContentLoaded', () => {
     initFormSwitching();
@@ -201,29 +201,69 @@ function initPasswordToggles() {
     });
 }
 
-async function initRegisterForm() {
+function initRegisterForm() {
     const form = document.getElementById('registerForm');
+
     if (!form) return;
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
         const username = form.querySelector('input[name="login"]')?.value;
         const email = form.querySelector('input[name="email"]')?.value;
         const password = form.querySelector('input[name="password"]')?.value;
         const passwordConfirm = form.querySelector('input[name="passwordConfirm"]')?.value;
-        if (password !== passwordConfirm) { alert('Пароли не совпадают'); return; }
+
+        if (password !== passwordConfirm) {
+            alert('Пароли не совпадают');
+            return;
+        }
+
         try {
-            const response = await fetch(`${API_URL}/users/`, { 
+            const response = await fetch(`${API_URL}/users/register/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, password })
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username,
+                    email,
+                    password,
+                    password_confirm: passwordConfirm
+                })
             });
+
+            const data = await response.json();
+
             if (response.ok) {
+
+                localStorage.setItem('ck_access_token', data.access);
+                localStorage.setItem('ck_refresh_token', data.refresh);
+
+                localStorage.setItem(
+                    'ck_currentUser',
+                    JSON.stringify(data.user)
+                );
+
                 alert('Регистрация успешна!');
-                document.querySelector('.switch-to-login')?.click();
+
+                window.location.href = 'index.html';
+
             } else {
-                const errorData = await response.json();
-                alert('Ошибка: ' + JSON.stringify(errorData));
+
+                console.error(data);
+
+                alert(
+                    data.detail ||
+                    JSON.stringify(data)
+                );
             }
-        } catch (error) { console.error('Ошибка:', error); }
+
+        } catch (error) {
+
+            console.error('Ошибка регистрации:', error);
+
+            alert('Сервер недоступен');
+        }
     });
 }

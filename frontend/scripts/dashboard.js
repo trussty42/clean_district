@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadHistory();
     initProfileForm();
     initOrgModalOnce();
+    initSubmissionModal();
     initTabs();
     initLogout();
     initAvatarUpload();
@@ -166,7 +167,8 @@ function initProfileForm() {
             email: document.getElementById('inputEmail').value,
             first_name: document.getElementById('inputName').value,
             last_name: document.getElementById('inputSurname').value,
-            middle_name: document.getElementById('inputMiddleName').value
+            middle_name: document.getElementById('inputMiddleName').value,
+            city: document.getElementById('inputCity').value
         };
 
         try {
@@ -332,7 +334,7 @@ async function loadHistory() {
     if (!token) return;
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/v1/history/', {
+        const response = await fetch('/api/v1/history/', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -616,6 +618,16 @@ function initOrganizations() {
     const user = JSON.parse(localStorage.getItem('ck_currentUser')) || {};
     const organizations = user.organizations || [];
 
+    const createBtn = document.getElementById('createOrgBtn');
+
+    const hasLeaderOrg = organizations.some(
+        org => org.role === 'leader'
+    );
+
+    if (createBtn) {
+        createBtn.style.display = hasLeaderOrg ? 'none' : 'flex';
+    }
+
     if (orgCount) {
         orgCount.textContent = organizations.length;
     }
@@ -645,7 +657,7 @@ function initOrgModalOnce() {
 
     if (createBtn) {
         createBtn.addEventListener('click', () => {
-            const owned = organizationsData.filter(o => o.role === 'Владелец').length;
+            const owned = organizationsData.filter(o => o.role === 'leader').length;
             if (owned >= 1) {
                 toasts?.warning('Вы уже владеете одной организацией.', { duration: 3000 });
                 return;
@@ -678,12 +690,166 @@ function initOrgModalOnce() {
 
             const formData = new FormData(e.target);
 
-            await createOrganization(formData); // 🔥 API
+            const success = await createOrganization(formData);
 
-            modal.classList.remove('active');
-            createForm.reset();
+            if (success) {
+                modal.classList.remove('active');
+                createForm.reset();
+            }
         });
     }
+}
+
+async function loadPoints() {
+
+    const select = document.getElementById('inputPoint');
+
+    if (!select) return;
+
+    try {
+
+        const response = await fetch('/api/v1/points/');
+
+        const points = await response.json();
+
+        points.forEach(point => {
+
+            const option = document.createElement('option');
+
+            option.value = point.id;
+
+            option.textContent =
+                `${point.organization} (${point.adress})`;
+
+            select.appendChild(option);
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        toasts.error('Не удалось загрузить пункты');
+    }
+}
+
+async function loadWasteTypes() {
+
+    const select = document.getElementById('inputMaterial');
+
+    if (!select) return;
+
+    try {
+
+        const response = await fetch('/api/v1/waste-types/');
+
+        const wasteTypes = await response.json();
+
+        wasteTypes.forEach(type => {
+
+            const option = document.createElement('option');
+
+            option.value = type.id;
+
+            option.textContent = type.name;
+
+            select.appendChild(option);
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        toasts.error('Не удалось загрузить типы отходов');
+    }
+}
+
+function initSubmissionModal() {
+
+    loadPoints();
+    loadWasteTypes();
+
+    const modal = document.getElementById('submissionModal');
+
+    const openBtn = document.getElementById('addSubmissionBtn');
+
+    const closeBtn = document.getElementById('closeSubmissionModal');
+
+    const form = document.getElementById('submissionForm');
+
+    if (!modal || !openBtn || !form) return;
+
+    openBtn.addEventListener('click', () => {
+        modal.classList.add('active');
+    });
+
+    closeBtn?.addEventListener('click', () => {
+        modal.classList.remove('active');
+        form.reset();
+    });
+
+    modal.addEventListener('click', (e) => {
+
+        if (e.target === modal) {
+            modal.classList.remove('active');
+            form.reset();
+        }
+    });
+
+    form.addEventListener('submit', async (e) => {
+
+        e.preventDefault();
+
+        const token = localStorage.getItem('ck_access_token');
+
+        const data = {
+            point: document.getElementById('inputPoint').value,
+            waste_type: document.getElementById('inputMaterial').value,
+            weight: document.getElementById('inputWeight').value,
+            total_price: document.getElementById('inputSum').value || 0
+        };
+
+        try {
+
+            const response = await fetch('/api/v1/history/', {
+
+                method: 'POST',
+
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+
+                const message =
+                    result.detail ||
+                    Object.values(result).flat().join('\n');
+
+                toasts.error(message);
+
+                return;
+            }
+
+            toasts.success('Сдача успешно отправлена');
+
+            modal.classList.remove('active');
+
+            form.reset();
+
+            await loadHistory();
+
+        } catch (err) {
+
+            console.error(err);
+
+            toasts.error('Сервер недоступен');
+        }
+    });
 }
 
 async function createOrganization(formData) {
@@ -691,7 +857,7 @@ async function createOrganization(formData) {
     if (!token) return;
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/v1/organizations/', {
+        const response = await fetch('/api/v1/organizations/', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -704,18 +870,27 @@ async function createOrganization(formData) {
         });
 
         if (!response.ok) {
+
             const err = await response.json();
-            throw new Error(JSON.stringify(err));
+            console.log(err)
+            const message =
+                err.detail ||
+                Object.values(err).flat().join('\n')
+            
+            toasts.error(message);
+
+            return false;
         }
 
         await loadProfile();
         initOrganizations();
 
         toasts.success('Организация создана!');
+        return true;
 
     } catch (err) {
         console.error(err);
-        toasts.error('Ошибка создания организации');
+        toasts.error('Сервер недоступен');
     }
 }
 
