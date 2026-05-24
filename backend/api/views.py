@@ -185,20 +185,25 @@ class WasteTypesViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         point = serializer.validated_data.get('point')
-        self.check_permissions(point.organization)
+        self.check_is_leader(point.organization)
         serializer.save()
 
     def perform_update(self, serializer):
-        self.check_permissions(serializer.instance.point.organization)
+        self.check_is_leader(serializer.instance.point.organization)
         super().perform_update(serializer)
 
     def perform_destroy(self, instance):
-        self.check_permissions(instance.point.organization)
+        self.check_is_leader(instance.point.organization)
         super().perform_destroy(instance)
 
-    def check_permissions(self, organization):
-        if not has_organization_rights(self.request.user, organization):
-            raise PermissionDenied('У вас нет прав на это действие')
+    def check_is_leader(self, organization):
+        if not has_organization_rights(
+            self.request.user,
+            organization.pk
+        ):
+            raise PermissionDenied(
+                'У вас нет прав на это действие'
+            )
 
 
 class NewsViewSet(ModelViewSet):

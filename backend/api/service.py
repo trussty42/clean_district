@@ -21,5 +21,5 @@ def has_organization_rights(user, organization):
         user=user,
         organization=organization,
         role_in_organization=COMPANY_LEADER
-    ).exist()
+    ).exists()
     return employee or user.role != USER
