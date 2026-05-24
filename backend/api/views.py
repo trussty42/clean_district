@@ -33,29 +33,52 @@ def user_registration(request):
     serializer = UserRegistrationSerializer(data=request.data)
 
     serializer.is_valid(raise_exception=True)
+
     serializer.validated_data.pop('password_confirm')
+
     username = serializer.validated_data['username']
     email = serializer.validated_data['email']
     password = serializer.validated_data['password']
-    User.objects.create_user(
+
+    user = User.objects.create_user(
         username=username,
         email=email,
         password=password
     )
-    return Response(serializer.data, status=status.HTTP_200_OK)
+
+    refresh = RefreshToken.for_user(user)
+
+    return Response({
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+        },
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }, status=status.HTTP_201_CREATED)
 
 
 @api_view(['POST'])
 def user_login(request):
     serializer = UserLoginSerializer(data=request.data)
+
     serializer.is_valid(raise_exception=True)
+
     username = serializer.validated_data['username']
     password = serializer.validated_data['password']
+
     user = authenticate(username=username, password=password)
 
     if user:
         refresh = RefreshToken.for_user(user)
+
         return Response({
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+            },
             'refresh': str(refresh),
             'access': str(refresh.access_token),
         }, status=status.HTTP_200_OK)
@@ -112,7 +135,7 @@ class PointViewSet(ModelViewSet):
     def get_queryset(self):
         return PickUpPoint.objects.annotate(
             avg_rating=Avg(
-                'review__rating', 
+                'review__rating',
                 filter=Q(review__is_published=True)
             )
         ).distinct()

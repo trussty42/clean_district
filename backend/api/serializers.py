@@ -87,24 +87,28 @@ class UserProfileSerializer(serializers.ModelSerializer):
         )
 
     def validate_email(self, value):
-        if User.objects.exclude(id=self.instance.id).filter(email=value).exists():
+        if User.objects.exclude(
+            id=self.instance.id
+        ).filter(email=value).exists():
             raise serializers.ValidationError("Этот email уже занят.")
         return value
 
     def validate_username(self, value):
-        if User.objects.exclude(id=self.instance.id).filter(username=value).exists():
+        if User.objects.exclude(
+            id=self.instance.id
+        ).filter(username=value).exists():
             raise serializers.ValidationError("Этот никнейм уже занят.")
         return value
 
     def get_organizations(self, obj):
         return [
-        {
-            "id": emp.organization.id,
-            "name": emp.organization.name,
-            "role": emp.role_in_organization,
-        }
-        for emp in obj.employee.all()
-    ]
+            {
+                "id": emp.organization.id,
+                "name": emp.organization.name,
+                "role": emp.role_in_organization,
+            }
+            for emp in obj.employee.all()
+        ]
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -157,12 +161,15 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
 
 class PointSerializer(serializers.ModelSerializer):
-    organization = serializers.StringRelatedField()
+    organization = serializers.PrimaryKeyRelatedField(
+        queryset=Organization.objects.all()
+    )
     average_rating = serializers.ReadOnlyField()
 
     class Meta:
         model = PickUpPoint
         fields = (
+            'id',
             'organization',
             'adress',
             'location',
@@ -173,6 +180,7 @@ class PointSerializer(serializers.ModelSerializer):
             'is_moderated',
             'moderation_status'
         )
+        read_only_fields = ('id',)
 
     def validate(self, data):
         point = PickUpPoint.objects.filter(
@@ -187,7 +195,9 @@ class PointSerializer(serializers.ModelSerializer):
 
 
 class PointWasteTypeSerializer(serializers.ModelSerializer):
-    point = serializers.StringRelatedField()
+    point = serializers.PrimaryKeyRelatedField(
+        queryset=PickUpPoint.objects.all()
+    )
     waste_type_display = serializers.CharField(
         source='get_waste_type_display',
         read_only=True
@@ -226,12 +236,20 @@ class OrganizationNewsSerializer(serializers.ModelSerializer):
 
 class SubmissionHistorySerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
-    point = serializers.StringRelatedField()
-    waste_type = serializers.StringRelatedField()
+    point = serializers.PrimaryKeyRelatedField(
+        queryset=PickUpPoint.objects.all()
+    )
+
+    waste_type = serializers.PrimaryKeyRelatedField(
+        queryset=PointWasteTypes.objects.all()
+    )
 
     class Meta:
         model = SubmissionHistory
-        fields = ('user', 'point', 'waste_type', 'weight', 'total_price', 'created_at')
+        fields = (
+            'user', 'point', 'waste_type',
+            'weight', 'total_price', 'created_at'
+        )
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -239,8 +257,8 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ('user', 'point', 'rating', 'text', 'created_at')
-        read_only_fields = ('user', 'created_at', 'is_published')
+        fields = ('id', 'user', 'point', 'rating', 'text', 'created_at')
+        read_only_fields = ('id', 'user', 'created_at', 'is_published')
 
     def validate(self, data):
         if self.context['request'].method == 'POST':
