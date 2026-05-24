@@ -4,11 +4,27 @@ from api import views
 
 
 router_v1 = DefaultRouter()
-router_v1.register('organizations', views.OrganizationViewSet, basename='organizations')
+router_v1.register(
+    'organizations',
+    views.OrganizationViewSet,
+    basename='organizations'
+)
 router_v1.register('points', views.PointViewSet, basename='points')
-router_v1.register('waste-types', views.WasteTypesViewSet, basename='waste-types')
-router_v1.register('history', views.SubmissionHistoryViewSet, basename='history')
-router_v1.register(r'points/(?P<point_inn>\d+)/reviews', views.ReviewViewSet, basename='point-reviews')
+router_v1.register(
+    'waste-types',
+    views.WasteTypesViewSet,
+    basename='waste-types'
+)
+router_v1.register(
+    'history',
+    views.SubmissionHistoryViewSet,
+    basename='history'
+)
+router_v1.register(
+    r'points/(?P<point_inn>\d+)/reviews',
+    views.ReviewViewSet,
+    basename='point-reviews'
+)
 router_v1.register('news', views.NewsViewSet, basename='news')
 
 authentication_urls = [
