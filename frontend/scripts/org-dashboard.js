@@ -83,8 +83,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         point => point.organization === orgData.id
     );
 
-    // 6. Загружаем остальные данные (пункты, новости) с динамическим ID
-    newsData = JSON.parse(localStorage.getItem(`ck_orgNews_${orgId}`)) || [];
+    const newsResponse = await fetch(
+        '/api/v1/news/',
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const newsResult = await newsResponse.json();
+
+    newsData = Array.isArray(newsResult)
+        ? newsResult
+        : newsResult.results || [];
+
+    console.log(newsData);
 
     // 7. Запускаем инициализацию интерфейса
     initOrgHeader();      // Обновляем шапку (название, статус, логотип)
@@ -584,85 +598,404 @@ window.openEditPointModal = async function(id) {
 
     pricesList.innerHTML = '';
 
-    const prices = wasteData.map(item => ({
-        id: item.id,
-        type: item.waste_type,
-        name: item.waste_name,
-        price: item.price
-    }));
+    
 
-    if (prices.length > 0) {
+    if (wasteData.length > 0) {
 
-        prices.forEach(item => {
-            addPriceRowToEditList(
-                item.type,
-                item.price,
-                item.id,
-                item.name
-            );
+        wasteData.forEach(item => {
+
+            addPriceRowToEditList({
+
+                id: item.id,
+
+                waste_name: item.waste_name,
+
+                waste_type: item.waste_type,
+
+                preparation: item.preparation,
+
+                not_accepted: item.not_accepted,
+
+                price: item.price,
+
+                is_actual_price: item.is_actual_price,
+
+                photo: item.photo
+            });
         });
 
     } else {
 
-        addPriceRowToEditList('', '');
+        addPriceRowToEditList();
     }
 
     document.getElementById('editPointModal').classList.add('active');
 };
 
-// ===== ВСПОМОГАТЕЛЬНАЯ: ДОБАВЛЕНИЕ СТРОКИ ЦЕН В МОДАЛКУ РЕДАКТИРОВАНИЯ =====
-function addPriceRowToEditList(
-    type = '',
-    price = '',
-    id = null,
-    name = ''
-) {
-    const list = document.getElementById('editPricesList');
-    const row = document.createElement('div');
-    row.className = 'price-row';
-    row.innerHTML = `
+window.openEditNewsModal = function(id) {
 
-        <div class="price-type-group">
+    const news = newsData.find(
+        item => item.id === id
+    );
 
-            <select class="price-type-input" required>
+    if (!news) return;
 
-                <option value="">
-                    Выберите тип отхода
-                </option>
+    document.getElementById(
+        'editNewsId'
+    ).value = news.id;
 
-                ${WASTE_TYPES.map(item => `
-                    <option
-                        value="${item.value}"
-                        ${item.value === type ? 'selected' : ''}
-                    >
-                        ${item.label}
-                    </option>
-                `).join('')}
+    document.getElementById(
+        'editNewsTitle'
+    ).value = news.title || '';
 
-            </select>
+    document.getElementById(
+        'editNewsText'
+    ).value = news.text || '';
 
-        </div>
+    const preview = document.getElementById(
+        'editNewsPreview'
+    );
 
-        <div class="price-value-group">
-            <input
-                type="number"
-                class="price-value-input"
-                placeholder="Цена ₽/кг"
-                step="0.1"
-                min="0"
-                required
+    preview.innerHTML = news.image
+        ? `
+            <img
+                src="${news.image}"
+                style="
+                    width:100%;
+                    max-height:260px;
+                    object-fit:cover;
+                    border-radius:18px;
+                "
             />
+        `
+        : '';
+
+    document
+        .getElementById('editNewsModal')
+        .classList.add('active');
+};
+
+document.getElementById('editNewsForm')
+?.addEventListener('submit', async (e) => {
+
+    e.preventDefault();
+
+    const id = document.getElementById(
+        'editNewsId'
+    ).value;
+
+    const token = localStorage.getItem(
+        'ck_access_token'
+    );
+
+    const formData = new FormData();
+
+    formData.append(
+        'title',
+        document.getElementById(
+            'editNewsTitle'
+        ).value
+    );
+
+    formData.append(
+        'text',
+        document.getElementById(
+            'editNewsText'
+        ).value
+    );
+
+    formData.append(
+        'is_published',
+        'true'
+    );
+
+    const image =
+        document.getElementById(
+            'editNewsImage'
+        )?.files?.[0];
+
+    if (image) {
+
+        formData.append(
+            'image',
+            image
+        );
+    }
+
+    try {
+
+        const response = await fetch(
+            `/api/v1/news/${id}/`,
+            {
+                method: 'PATCH',
+
+                headers: {
+                    Authorization:
+                        `Bearer ${token}`
+                },
+
+                body: formData
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+
+            console.error(data);
+
+            throw new Error(
+                Object.values(data)[0]?.[0]
+                || 'Ошибка'
+            );
+        }
+
+        const idx = newsData.findIndex(
+            item => item.id == id
+        );
+
+        if (idx > -1) {
+
+            newsData[idx] = data;
+        }
+
+        renderNews();
+
+        closeModal('editNewsModal');
+
+        window.toasts?.success(
+            'Новость обновлена!',
+            { duration: 3000 }
+        );
+
+    } catch (err) {
+
+        console.error(err);
+
+        window.toasts?.error(
+            err.message,
+            { duration: 3000 }
+        );
+    }
+});
+
+document.getElementById('deleteNewsBtn')
+?.addEventListener('click', async () => {
+
+    const id = document.getElementById(
+        'editNewsId'
+    ).value;
+
+    if (!confirm('Удалить новость?')) {
+        return;
+    }
+
+    const token = localStorage.getItem(
+        'ck_access_token'
+    );
+
+    try {
+
+        const response = await fetch(
+            `/api/v1/news/${id}/`,
+            {
+                method: 'DELETE',
+
+                headers: {
+                    Authorization:
+                        `Bearer ${token}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+
+            throw new Error(
+                'Ошибка удаления'
+            );
+        }
+
+        newsData = newsData.filter(
+            item => item.id != id
+        );
+
+        renderNews();
+
+        closeModal('editNewsModal');
+
+        window.toasts?.success(
+            'Новость удалена!',
+            { duration: 3000 }
+        );
+
+    } catch (err) {
+
+        console.error(err);
+
+        window.toasts?.error(
+            err.message,
+            { duration: 3000 }
+        );
+    }
+});
+// ===== ВСПОМОГАТЕЛЬНАЯ: ДОБАВЛЕНИЕ СТРОКИ ЦЕН В МОДАЛКУ РЕДАКТИРОВАНИЯ =====
+function addPriceRowToEditList(data = {}) {
+
+    const container =
+        document.getElementById('editPricesList');
+
+    const card = document.createElement('div');
+
+    card.className = 'waste-card';
+
+    card.innerHTML = `
+
+        <input
+            type="hidden"
+            class="waste-id-input"
+            value="${data.id || ''}"
+        />
+
+        <div class="waste-card-top">
+
+            <div class="form-group">
+
+                <label>Название отхода</label>
+
+                <input
+                    type="text"
+                    class="waste-name-input"
+                    value="${data.waste_name || ''}"
+                    placeholder="Например: ПЭТ бутылки"
+                />
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Тип отхода</label>
+
+                <select
+                    class="waste-type-input"
+                    required
+                >
+
+                    <option value="">
+                        Выберите тип
+                    </option>
+
+                    ${WASTE_TYPES.map(item => `
+                        <option
+                            value="${item.value}"
+                            ${item.value === data.waste_type
+                                ? 'selected'
+                                : ''}
+                        >
+                            ${item.label}
+                        </option>
+                    `).join('')}
+
+                </select>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Цена ₽/кг</label>
+
+                <input
+                    type="number"
+                    class="waste-price-input"
+                    value="${data.price || ''}"
+                    step="0.1"
+                    min="0"
+                />
+
+            </div>
+
         </div>
 
-        <button
-            type="button"
-            class="btn-remove-price"
-            title="Удалить"
-        >
-            &times;
-        </button>
+        <div class="form-group">
+
+            <label>Как подготовить</label>
+
+            <textarea
+                class="waste-preparation-input"
+                placeholder="Например: промыть и снять крышку"
+            >${data.preparation || ''}</textarea>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>Не принимается</label>
+
+            <textarea
+                class="waste-notaccepted-input"
+                placeholder="Например: грязный пластик"
+            >${data.not_accepted || ''}</textarea>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>Фото отхода</label>
+
+            <input
+                type="file"
+                class="waste-photo-input"
+                accept="image/*"
+            />
+
+        </div>
+
+        <div class="waste-card-actions">
+
+            <button
+                type="button"
+                class="btn-small delete remove-waste-btn"
+            >
+                Удалить
+            </button>
+
+        </div>
     `;
-    list.appendChild(row);
+
+    card
+        .querySelector('.remove-waste-btn')
+        .addEventListener('click', () => {
+
+            card
+    .querySelector('.remove-waste-btn')
+    .addEventListener('click', async () => {
+
+        const wasteId = card
+                .querySelector('.waste-id-input')
+                ?.value;
+
+            if (wasteId) {
+
+                const token = localStorage.getItem(
+                    'ck_access_token'
+                );
+
+                await fetch(
+                    `/api/v1/waste-types/${wasteId}/`,
+                    {
+                        method: 'DELETE',
+
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
+            }
+
+            card.remove();
+        });
+    });
+
+    container.appendChild(card);
 }
 
 // ===== ИНИЦИАЛИЗАЦИЯ МОДАЛКИ РЕДАКТИРОВАНИЯ =====
@@ -672,10 +1005,12 @@ function initEditPointModal() {
         document.getElementById('editPointModal').classList.remove('active');
     });
 
-    // Добавление строки цены
-    document.getElementById('addEditPriceRow')?.addEventListener('click', () => {
-        addPriceRowToEditList();
-    });
+    document
+        .getElementById('addEditPriceRow')
+        ?.addEventListener('click', () => {
+
+            addPriceRowToEditList();
+        });
 
     // Удаление строки цены
     document.getElementById('editPricesList')?.addEventListener('click', (e) => {
@@ -753,114 +1088,151 @@ function initEditPointModal() {
             }
 
             pointsData[idx] = data;
-
-            const priceRows = document.querySelectorAll(
-                '#editPricesList .price-row'
+            const wasteCards = document.querySelectorAll(
+                '#editPricesList .waste-card'
             );
 
-            await Promise.all(
+            for (const card of wasteCards) {
 
-                [...priceRows].map(async row => {
+                const wasteId = card
+                    .querySelector('.waste-id-input')
+                    ?.value;
 
-                    const wasteId = row
-                        .querySelector('.waste-id-input')
-                        ?.value;
+                const waste_name = card
+                    .querySelector('.waste-name-input')
+                    ?.value
+                    .trim();
 
-                    const wasteType = row
-                        .querySelector('.price-type-input')
+                const waste_type = card
+                    .querySelector('.waste-type-input')
+                    ?.value;
+
+                const preparation = card
+                    .querySelector('.waste-preparation-input')
+                    ?.value
+                    .trim();
+
+                const not_accepted = card
+                    .querySelector('.waste-notaccepted-input')
+                    ?.value
+                    .trim();
+
+                const price = parseFloat(
+                    card
+                        .querySelector('.waste-price-input')
                         ?.value
-                        .trim();
+                );
 
-                    const price = parseFloat(
-                        row.querySelector('.price-value-input')?.value
+                const is_actual_price = card
+                    .querySelector('.waste-actual-input')
+                    ?.checked;
+
+                const photoInput = card
+                    .querySelector('.waste-photo-input');
+
+                if (!waste_name || !waste_type) {
+                    continue;
+                }
+
+                const formData = new FormData();
+
+                formData.append('point', id);
+
+                formData.append('waste_name', waste_name);
+
+                formData.append('waste_type', waste_type);
+
+                formData.append(
+                    'preparation',
+                    preparation || ''
+                );
+
+                formData.append(
+                    'not_accepted',
+                    not_accepted || ''
+                );
+
+                if (!isNaN(price)) {
+                    formData.append('price', price);
+                }
+
+                formData.append(
+                    'is_actual_price',
+                    true
+                );
+
+                if (photoInput?.files?.[0]) {
+
+                    formData.append(
+                        'photo',
+                        photoInput.files[0]
+                    );
+                }
+
+                let response;
+
+                // UPDATE
+                if (wasteId) {
+
+                    response = await fetch(
+                        `/api/v1/waste-types/${wasteId}/`,
+                        {
+                            method: 'PATCH',
+
+                            headers: {
+                                Authorization: `Bearer ${token}`
+                            },
+
+                            body: formData
+                        }
                     );
 
-                    const payload = {
-
-                        point: id,
-
-                        waste_name: wasteType,
-
-                        waste_type: wasteType,
-
-                        preparation: '',
-
-                        not_accepted: '',
-
-                        price: price,
-
-                        is_actual_price: true
-                    };
-
-                    // UPDATE
-                    if (wasteId) {
-
-                        const res = await fetch(
-                            `/api/v1/waste-types/${wasteId}/`,
-                            {
-                                method: 'PATCH',
-
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    Authorization: `Bearer ${token}`
-                                },
-
-                                body: JSON.stringify(payload)
-                            }
-                        );
-
-                        const responseData = await res.json();
-
-                        console.log(responseData);
-
-                        if (!res.ok) {
-
-                            const field = Object.keys(responseData)[0];
-
-                            throw new Error(
-                                `${field}: ${responseData[field]?.[0]}`
-                            );
-                        }
-
-                        return responseData;
-                    }
+                } else {
 
                     // CREATE
-                    const res = await fetch(
+                    response = await fetch(
                         '/api/v1/waste-types/',
                         {
                             method: 'POST',
 
                             headers: {
-                                'Content-Type': 'application/json',
                                 Authorization: `Bearer ${token}`
                             },
 
-                            body: JSON.stringify(payload)
+                            body: formData
                         }
                     );
+                }
 
-                    const responseData = await res.json();
+                let responseData;
 
-                    console.log(responseData);
+                try {
 
-                    if (!res.ok) {
+                    responseData = await response.json();
 
-                        const field = Object.keys(responseData)[0];
+                } catch {
 
-                        throw new Error(
-                            `${field}: ${responseData[field]?.[0]}`
-                        );
-                    }
+                    throw new Error(
+                        'Ошибка сервера'
+                    );
+                }
 
-                    return responseData;
-                })
-            );
+                if (!response.ok) {
+
+                    console.error(responseData);
+
+                    const field =
+                        Object.keys(responseData)[0];
+
+                    throw new Error(
+                        `${field}: ${responseData[field]?.[0]}`
+                    );
+                }
+            }
+            
             renderPoints();
 
-            document
-                .getElementById('editPointModal')
-                .classList.remove('active');
+            await openEditPointModal(id);
 
             window.toasts?.success(
                 'Пункт обновлён!',
@@ -989,26 +1361,96 @@ function initNews() {
         document.getElementById('addNewsModal')?.classList.remove('active');
     });
     
-    document.getElementById('addNewsForm')?.addEventListener('submit', (e) => {
+    document.getElementById('addNewsForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
         
-        const newNews = {
-            id: Date.now(),
-            title: formData.get('newsTitle'),
-            text: formData.get('newsText'),
-            type: formData.get('newsType'),
-            status: 'pending',
-            date: new Date().toISOString().split('T')[0]
-        };
-        
-        newsData.unshift(newNews);
-        localStorage.setItem(`ck_orgNews_${orgData.id}`, JSON.stringify(newsData));
-        renderNews();
-        
-        document.getElementById('addNewsModal')?.classList.remove('active');
-        e.target.reset();
-        window.toasts?.success('Новость отправлена на модерацию!', { duration: 4000 });
+        const token = localStorage.getItem(
+            'ck_access_token'
+        );
+
+        const formDataToSend = new FormData();
+
+        formDataToSend.append(
+            'title',
+            formData.get('newsTitle')
+        );
+
+        formDataToSend.append(
+            'text',
+            formData.get('newsText')
+        );
+        formDataToSend.append(
+            'is_published',
+            'true'
+        );
+
+        const imageFile =
+            document.getElementById(
+                'newsImageInput'
+            )?.files?.[0];
+
+        if (imageFile) {
+
+            formDataToSend.append(
+                'image',
+                imageFile
+            );
+        }
+
+        try {
+
+            const response = await fetch(
+                '/api/v1/news/',
+                {
+                    method: 'POST',
+
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    },
+
+                    body: formDataToSend
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+
+                console.error(data);
+
+                const field =
+                    Object.keys(data)[0];
+
+                throw new Error(
+                    `${field}: ${data[field]?.[0]}`
+                );
+            }
+
+            newsData.unshift(data);
+
+            renderNews();
+
+            document
+                .getElementById('addNewsModal')
+                ?.classList.remove('active');
+
+            e.target.reset();
+
+            window.toasts?.success(
+                'Новость сохранена!',
+                { duration: 3000 }
+            );
+
+        } catch (err) {
+
+            console.error(err);
+
+            window.toasts?.error(
+                err.message,
+                { duration: 3000 }
+            );
+        }
     });
 }
 
@@ -1016,21 +1458,41 @@ function renderNews() {
     const list = document.getElementById('newsList');
     if (!list) return;
     
-    const typeMap = { news: 'Новость', promotion: 'Акция', announcement: 'Объявление' };
-    const statusMap = { pending: 'На проверке', published: 'Опубликовано', rejected: 'Отклонена' };
-    
     list.innerHTML = newsData.map(item => `
-        <div class="news-card">
+
+        <div
+            class="news-card"
+            onclick="openEditNewsModal(${item.id})"
+        >
+
+            ${item.image ? `
+                <img
+                    src="${item.image}"
+                    class="news-image"
+                    alt="${item.title}"
+                />
+            ` : ''}
+
             <div class="news-header">
-                <h4 class="news-title">${item.title}</h4>
-                <span class="news-type ${item.type}">${typeMap[item.type] || item.type}</span>
+
+                <h4 class="news-title">
+                    ${item.title}
+                </h4>
+
             </div>
-            <p class="news-text">${item.text}</p>
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span class="news-date" style="font-size:13px;color:#888;">${item.date}</span>
-                <span class="news-status ${item.status}">${statusMap[item.status] || item.status}</span>
-            </div>
+
+            <p class="news-text">
+                ${item.text}
+            </p>
+
+            <span class="news-date">
+                ${new Date(
+                    item.created_at
+                ).toLocaleDateString('ru-RU')}
+            </span>
+
         </div>
+
     `).join('');
 }
 
@@ -1349,3 +1811,10 @@ function getWasteLabel(value) {
 
     return item ? item.label : value;
 }
+
+window.closeModal = function(modalId) {
+
+    document
+        .getElementById(modalId)
+        ?.classList.remove('active');
+};

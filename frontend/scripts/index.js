@@ -89,9 +89,12 @@ async function loadNews() {
     try {
         const response = await fetch('/api/v1/news/');
         const data = await response.json();
+        console.log(data);
 
         // если DRF pagination
-        const newsList = data.results || data;
+        const newsList = Array.isArray(data)
+            ? data
+            : data.results || [];
 
         renderNews(newsList);
     } catch (error) {
@@ -114,7 +117,6 @@ function renderNews(newsList) {
             <p class="news-card__date">${formatDate(news.created_at)}</p>
             <h3 class="news-card__title">${news.title}</h3>
             <div class="news-card__content">
-                <p class="news-card__short">${getShortText(news)}</p>
                 <div class="news-card__full">
                     <p>${news.text}</p>
                 </div>
@@ -151,14 +153,6 @@ function initNewsToggle() {
             }
         });
     });
-}
-
-
-// -------------------- УТИЛИТЫ --------------------
-
-function getShortText(news) {
-    if (news.short_description) return news.short_description;
-    return news.content ? news.content.slice(0, 120) + '...' : '';
 }
 
 

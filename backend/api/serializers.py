@@ -185,27 +185,115 @@ class OrganizationSerializer(serializers.ModelSerializer):
         return value
 
 
+class PointWasteTypeSerializer(serializers.ModelSerializer):
+    point = serializers.PrimaryKeyRelatedField(
+        queryset=PickUpPoint.objects.all()
+    )
+    waste_type_display = serializers.CharField(
+        source='get_waste_type_display',
+        read_only=True
+    )
+
+    class Meta:
+        model = PointWasteTypes
+        fields = (
+            'id', 'point', 'waste_name', 'waste_type',
+            'waste_type_display', 'preparation', 'not_accepted',
+            'photo', 'price', 'is_actual_price'
+        )
+
+        extra_kwargs = {
+            'photo': {
+                'required': False
+            }
+        }
+
+    def validate_waste_name(self, value):
+        if not re.fullmatch(WASTENAME_PATTERN, value):
+            raise serializers.ValidationError(
+                'Неверное название товара'
+            )
+        return value
+
+    def validate_price(self, value):
+        if value <= 0:
+            raise serializers.ValidationError(
+                'Цена должна быть положительным значением'
+            )
+        return value.quantize(Decimal('0.01'))
+
+
 class PointSerializer(serializers.ModelSerializer):
     organization = serializers.PrimaryKeyRelatedField(
         queryset=Organization.objects.all()
     )
+    organization_name = serializers.CharField(
+        source='organization.name',
+        read_only=True
+    )
+    organization_phone = serializers.CharField(
+        source='organization.phone',
+        read_only=True
+    )
+
+    organization_email = serializers.CharField(
+        source='organization.email',
+        read_only=True
+    )
     average_rating = serializers.ReadOnlyField()
+    latitude = serializers.SerializerMethodField()
+    longitude = serializers.SerializerMethodField()
+    waste_types = PointWasteTypeSerializer(
+        many=True,
+        read_only=True
+    )
+    reviews = serializers.SerializerMethodField()
+    reviews_count = serializers.IntegerField(
+        read_only=True
+    )
 
     class Meta:
         model = PickUpPoint
         fields = (
             'id',
             'organization',
+            'organization_name',
+            'organization_phone',
+            'organization_email',
             'adress',
             'location',
+            'latitude',
+            'longitude',
+            'waste_types',
+            'reviews',
             'work_schedule',
             'created_at',
             'visits_count',
+            'reviews_count',
             'average_rating',
             'is_moderated',
             'moderation_status'
         )
         read_only_fields = ('id',)
+
+    def get_latitude(self, obj):
+
+        return obj.location.y if obj.location else None
+
+    def get_longitude(self, obj):
+
+        return obj.location.x if obj.location else None
+
+    def get_reviews(self, obj):
+
+        reviews = obj.review.filter(
+            is_published=True
+        ).order_by('-created_at')[:5]
+
+        return ReviewSerializer(
+            reviews,
+            many=True
+        ).data
 
     def validate(self, data):
 
@@ -235,48 +323,22 @@ class PointSerializer(serializers.ModelSerializer):
         return data
 
 
-class PointWasteTypeSerializer(serializers.ModelSerializer):
-    point = serializers.PrimaryKeyRelatedField(
-        queryset=PickUpPoint.objects.all()
-    )
-    waste_type_display = serializers.CharField(
-        source='get_waste_type_display',
-        read_only=True
-    )
-
-    class Meta:
-        model = PointWasteTypes
-        fields = (
-            'point', 'waste_name', 'waste_type',
-            'waste_type_display', 'preparation', 'not_accepted',
-            'photo', 'price', 'is_actual_price'
-        )
-
-    def validate_waste_name(self, value):
-        if not re.fullmatch(WASTENAME_PATTERN, value):
-            raise serializers.ValidationError(
-                'Неверное название товара'
-            )
-        return value
-
-    def validate_price(self, value):
-        if value <= 0:
-            raise serializers.ValidationError(
-                'Цена должна быть положительным значением'
-            )
-        return value.quantize(Decimal('0.01'))
-
-
 class OrganizationNewsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrganizationNews
-        fields = ('title', 'text', 'is_published', 'created_at', 'image')
+        fields = ('id', 'title', 'text', 'is_published', 'created_at', 'image')
         read_only_fields = ('created_at',)
 
 
-class SubmissionHistorySerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()
+class SubmissionHistorySerializer(
+    serializers.ModelSerializer
+):
+
+    user = serializers.StringRelatedField(
+        read_only=True
+    )
+
     point = serializers.PrimaryKeyRelatedField(
         queryset=PickUpPoint.objects.all()
     )
@@ -285,12 +347,43 @@ class SubmissionHistorySerializer(serializers.ModelSerializer):
         queryset=PointWasteTypes.objects.all()
     )
 
+    point_name = serializers.SerializerMethodField()
+
+    waste_type_name = serializers.SerializerMethodField()
+
     class Meta:
+
         model = SubmissionHistory
+
         fields = (
-            'user', 'point', 'waste_type',
-            'weight', 'total_price', 'created_at'
+            'user',
+            'point',
+            'point_name',
+            'waste_type',
+            'waste_type_name',
+            'weight',
+            'total_price',
+            'created_at'
         )
+
+        read_only_fields = (
+            'user',
+            'created_at'
+        )
+
+    def get_point_name(self, obj):
+
+        if not obj.point:
+            return None
+
+        return obj.point.organization.name
+
+    def get_waste_type_name(self, obj):
+
+        if not obj.waste_type:
+            return None
+
+        return obj.waste_type.get_waste_type_display()
 
 
 class ReviewSerializer(serializers.ModelSerializer):

@@ -628,13 +628,7 @@ body {
 
 .news-card__content {
     margin-bottom: 20px;
-}
-
-.news-card__short {
-    color: #000000;
-    line-height: 1.6;
-    margin-bottom: 15px;
-    font-size: 16px;
+    word-break: break-all;
 }
 
 .news-card__full {

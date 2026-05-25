@@ -1,4 +1,3 @@
-from api.permissions import IsAdminOrModerator
 from api.serializers import (OrganizationNewsSerializer,
                              OrganizationSerializer, PointSerializer,
                              PointWasteTypeSerializer,
@@ -11,7 +10,7 @@ from api.filters import PickUpPointFilter, WasteTypesFilter
 from config.constants import COMPANY_LEADER, HAS_ORGANIZATION_RIGHTS
 from django.contrib.auth import authenticate
 from django.db import transaction
-from django.db.models import Avg, Q
+from django.db.models import Avg, Count, Q
 from django_filters.rest_framework import DjangoFilterBackend
 from news.models import OrganizationNews
 from points.models import PickUpPoint, PointWasteTypes, SubmissionHistory
@@ -154,6 +153,10 @@ class PointViewSet(ModelViewSet):
             avg_rating=Avg(
                 'review__rating',
                 filter=Q(review__is_published=True)
+            ),
+            reviews_count=Count(
+                'review',
+                filter=Q(review__is_published=True)
             )
         ).distinct()
 
@@ -228,7 +231,7 @@ class NewsViewSet(ModelViewSet):
         is_published=True
     ).order_by('-created_at')
     serializer_class = OrganizationNewsSerializer
-    permission_classes = (IsAdminOrModerator,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = NewsPagination
 
 
@@ -243,15 +246,19 @@ class SubmissionHistoryViewSet(ModelViewSet):
             user=self.request.user
         ).order_by('-created_at')
 
-    def perform_create(self, serializer):
-        if getattr(self, 'swagger_fake_view', False):
+    def perform_create(
+        self,
+        serializer
+    ):
+        if getattr(
+            self,
+            'swagger_fake_view',
+            False
+        ):
             return
-        point = serializer.validated_data.get('point')
-        if not has_organization_rights(self.request.user, point.organization):
-            raise PermissionDenied(
-                'У вас нет прав на добавление истории для этого пункта'
-            )
-        serializer.save()
+        serializer.save(
+            user=self.request.user
+        )
 
 
 class ReviewViewSet(ModelViewSet):

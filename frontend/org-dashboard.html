@@ -370,30 +370,6 @@
                         </div>
                     </div>
 
-                    <!-- ДИНАМИЧЕСКИЙ БЛОК ЦЕН -->
-                    <div class="prices-block">
-                        <label class="prices-label">Цены за 1 кг (₽)</label>
-                        <div id="pricesList" class="prices-list">
-                            <!-- Строки будут добавляться сюда через JS -->
-                        </div>
-                        <button type="button" class="btn-add-price" id="addPriceRow">
-                            Добавить тип отхода
-                        </button>
-                    </div>
-
-                    <!-- Список подсказок для автодополнения -->
-                    <datalist id="wasteTypesOptions">
-                        <option value="Пластик">
-                        <option value="Бумага">
-                        <option value="Стекло">
-                        <option value="Металл">
-                        <option value="Дерево">
-                        <option value="Текстиль">
-                        <option value="Электроника">
-                        <option value="Опасные отходы">
-                        <option value="Строительный мусор">
-                    </datalist>
-
                     <div class="form-actions" style="margin-top: 24px;">
                         <button type="submit" class="btn-primary">Добавить пункт</button>
                     </div>
@@ -445,10 +421,27 @@
                     </div>
                 </div>
                 
-                <div class="prices-block">
-                    <label class="prices-label">Цены за 1 кг (₽)</label>
-                    <div id="editPricesList" class="prices-list"></div>
-                    <button type="button" class="btn-add-price" id="addEditPriceRow">+ Добавить тип отхода</button>
+                <div class="waste-management-block">
+
+                    <div class="waste-header">
+
+                        <h4>Типы отходов</h4>
+
+                        <button
+                            type="button"
+                            class="btn-add-price"
+                            id="addEditPriceRow"
+                        >
+                            Добавить отход
+                        </button>
+
+                    </div>
+
+                    <div
+                        id="editPricesList"
+                        class="waste-grid"
+                    ></div>
+
                 </div>
                 
                 <div class="form-actions" style="margin-top:24px; display:flex; gap:12px; justify-content:space-between;">
@@ -474,16 +467,105 @@
                     <textarea name="newsText" rows="5" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Тип</label>
-                    <select name="newsType">
-                        <option value="news">Новость</option>
-                        <option value="promotion">Акция</option>
-                        <option value="announcement">Объявление</option>
-                    </select>
+
+                    <label>Изображение</label>
+
+                    <input
+                        type="file"
+                        id="newsImageInput"
+                        accept="image/*"
+                    />
+
                 </div>
                 <button type="submit" class="btn-primary">Отправить на модерацию</button>
             </form>
         </div>
+    </div>
+    <div class="modal-overlay" id="editNewsModal">
+
+        <div class="modal-content">
+
+            <button
+                class="modal-close"
+                onclick="closeModal('editNewsModal')"
+            >
+                ×
+            </button>
+
+            <h2 class="modal-title">
+                Редактирование новости
+            </h2>
+
+            <form id="editNewsForm">
+
+                <input
+                    type="hidden"
+                    id="editNewsId"
+                />
+
+                <div class="form-group">
+
+                    <label>Заголовок *</label>
+
+                    <input
+                        type="text"
+                        id="editNewsTitle"
+                        required
+                    />
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Текст *</label>
+
+                    <textarea
+                        id="editNewsText"
+                        required
+                    ></textarea>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Изображение</label>
+
+                    <input
+                        type="file"
+                        id="editNewsImage"
+                        accept="image/*"
+                    />
+
+                </div>
+
+                <div
+                    id="editNewsPreview"
+                    style="margin-bottom:20px;"
+                ></div>
+
+                <div class="modal-actions">
+
+                    <button
+                        type="submit"
+                        class="btn-primary"
+                    >
+                        Сохранить
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn-danger"
+                        id="deleteNewsBtn"
+                    >
+                        Удалить
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
     </div>
 
     <!-- Модальное окно: Пригласить сотрудника -->

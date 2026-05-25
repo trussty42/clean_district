@@ -1,45 +1,6 @@
 let currentView = 'map';
-let allPoints = [
-    {
-        id: 1,
-        coords: [56.837435, 60.597636],
-        name: 'Вторплюс',
-        address: 'г. Екатеринбург, ул. Куйбышева, 21',
-        phone: '+7 (777) 777-77-77',
-        email: 'vtorplusekologiyu.ru',
-        hours: 'Пн-Пт: 12:00-20:00',
-        types: ['Пластик', 'Бумага', 'Электроника'],
-        prices: {
-            'Пластик': '22 ₽/кг',
-            'Бумага': '8 ₽/кг',
-            'Электроника': '40 ₽/кг'
-        },
-        rating: 4.8,
-        reviews: 15,
-        isOpenNow: true,
-        is24hours: false
-    },
-    {
-        id: 2,
-        coords: [56.836766, 60.657949],
-        name: 'ЭкоПункт',
-        address: 'г. Екатеринбург, ул. Коминтерна, 11',
-        phone: '+7 (495) 987-65-43',
-        email: '',
-        hours: 'Пн-Пт: 9:00-18:00',
-        types: ['Пластик', 'Бумага', 'Текстиль'],
-        prices: {
-            'Пластик': '20 ₽/кг',
-            'Бумага': '10 ₽/кг',
-            'Текстиль': '15 ₽/кг'
-        },
-        rating: 4.5,
-        reviews: 8,
-        isOpenNow: true,
-        is24hours: false
-    }
-];
-let filteredPoints = [...allPoints];
+let allPoints = [];
+let filteredPoints = [];
 
 function getUserLocation() {
     if (navigator.geolocation) {
@@ -58,6 +19,88 @@ function getUserLocation() {
     }
 }
 
+async function loadPoints() {
+
+    try {
+
+        const response = await fetch(
+            '/api/v1/points/'
+        );
+
+        if (!response.ok) {
+
+            throw new Error(
+                'Ошибка загрузки точек'
+            );
+        }
+
+        const data = await response.json();
+
+        allPoints = data.map(point => ({
+
+            id: point.id,
+
+            coords: [
+                point.latitude,
+                point.longitude
+            ],
+
+            name:
+                point.organization_name ||
+                'Пункт приёма',
+
+            address: point.adress,
+
+            phone:
+                point.organization_phone || '',
+
+            email:
+                point.organization_email || '',
+
+            types:
+                point.waste_types || [],
+
+            reviewsData:
+                point.reviews || [],
+
+            hours: point.work_schedule,
+
+            isOpenNow: true,
+
+            is24hours: false,
+
+            prices: Object.fromEntries(
+
+                (point.waste_types || []).map(item => [
+
+                    item.waste_name,
+
+                    `${item.price} ₽/кг`
+                ])
+            ),
+            rating:
+                point.average_rating || 0,
+
+            reviews:
+                point.reviews_count || 0,
+        }));
+
+        filteredPoints = [...allPoints];
+
+        console.log(
+            'Точки загружены:',
+            allPoints
+        );
+
+    } catch (error) {
+
+        console.error(
+            'Ошибка загрузки точек:',
+            error
+        );
+    }
+}
+
 // ===== ИНИЦИАЛИЗАЦИЯ =====
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof ymaps === 'undefined') {
@@ -65,12 +108,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     
-    ymaps.ready(() => {
+    ymaps.ready(async () => {
+
+        await loadPoints();
         initMap();
         initViewToggle();
         initFilters();
         initSearch();
-        initSort(); // Инициализируем сортировку
+        initSort();
         renderList();
     });
     
@@ -253,32 +298,10 @@ function initSearch() {
     searchInput.addEventListener('input', (e) => {
         clearTimeout(timeout);
         
-        timeout = setTimeout(() => {
-            const query = e.target.value.toLowerCase().trim();
-            
-            filteredPoints = allPoints.filter(p => 
-                p.name.toLowerCase().includes(query) ||
-                p.address.toLowerCase().includes(query)
-            );
-            
-            updateFoundCount();
-            
-            if (currentView === 'list') {
-                renderList();
-            } else {
-                if (window.yandexMap) {
-                    window.yandexMap.geoObjects.removeAll();
-                    filteredPoints.forEach(p => {
-                        addMarker(window.yandexMap, p.coords, p.name, p.address, p.phone, p.hours, p.types);
-                    });
-                    if (filteredPoints.length > 1) {
-                        window.yandexMap.setBounds(window.yandexMap.geoObjects.getBounds(), {
-                            checkZoomRange: true,
-                            zoomMargin: 50
-                        });
-                    }
-                }
-            }
+        setTimeout(() => {
+
+            applyFilters();
+
         }, 300);
     });
 }
@@ -289,6 +312,175 @@ function initSort() {
     
     sortSelect.addEventListener('change', (e) => {
         sortPoints(e.target.value);
+    });
+}
+
+async function applyFilters() {
+
+    const checkedTypes = [
+
+        ...document.querySelectorAll(
+            'input[name="type"]:checked'
+        )
+
+    ].map(cb => cb.value);
+
+    const search = document
+        .getElementById('searchInput')
+        ?.value
+        ?.trim();
+
+    const rating = document
+        .getElementById('ratingRange')
+        ?.value;
+
+    const radius = document
+        .getElementById('radiusRange')
+        ?.value;
+
+    const params = new URLSearchParams();
+
+    // Типы отходов
+    if (checkedTypes.length) {
+
+        params.append(
+            'waste_type',
+            checkedTypes.join(',')
+        );
+    }
+
+    // Поиск
+    if (search) {
+
+        params.append(
+            'search',
+            search
+        );
+    }
+
+    // Рейтинг
+    if (rating > 0) {
+
+        params.append(
+            'rating_from',
+            rating
+        );
+    }
+
+    // Радиус
+    if (
+        radius > 0 &&
+        window.userCoordinates
+    ) {
+
+        params.append(
+            'radius',
+            radius
+        );
+
+        params.append(
+            'lat',
+            window.userCoordinates[0]
+        );
+
+        params.append(
+            'lon',
+            window.userCoordinates[1]
+        );
+    }
+
+    try {
+
+        const response = await fetch(
+
+            `/api/v1/points/?${params}`
+        );
+
+        const data = await response.json();
+        console.log(data);
+        allPoints = data.map(point => ({
+
+            id: point.id,
+
+            coords: [
+                point.latitude,
+                point.longitude
+            ],
+
+            name:
+                point.organization_name,
+
+            address:
+                point.adress,
+
+            phone:
+                point.organization_phone,
+
+            email:
+                point.organization_email,
+
+            hours:
+                point.work_schedule,
+
+            rating:
+                point.average_rating || 0,
+
+            reviews:
+                point.reviews_count || 0,
+
+            types:
+                point.waste_types || [],
+
+            reviewsData:
+                point.reviews || [],
+
+            isOpenNow: true
+        }));
+
+        filteredPoints = [...allPoints];
+
+        renderList();
+
+        refreshMapMarkers();
+
+        updateFoundCount();
+
+        document
+            .getElementById(
+                'filtersSidebar'
+            )
+            ?.classList.remove('open');
+
+    } catch (error) {
+
+        console.error(
+            'Ошибка фильтрации:',
+            error
+        );
+    }
+}
+
+function refreshMapMarkers() {
+
+    if (!window.yandexMap) return;
+
+    window.yandexMap.geoObjects.removeAll();
+
+    filteredPoints.forEach(point => {
+
+        addMarker(
+            window.yandexMap,
+            point.coords,
+            point.name,
+            point.address,
+            point.phone,
+            point.hours,
+            point.types,
+            point.rating,
+            point.reviews,
+            true,
+            point.id
+        );
     });
 }
 
@@ -440,50 +632,6 @@ function initFilters() {
     }
 }
 
-function applyFilters() {
-    const checkedTypes = Array.from(document.querySelectorAll('input[name="type"]:checked'))
-        .map(i => i.value);
-    const minRating = parseFloat(document.getElementById('ratingRange')?.value) || 0;
-    const maxRadius = parseFloat(document.getElementById('radiusRange')?.value) || 50;
-    
-    const userCoords = window.userCoordinates || null;
-    
-    filteredPoints = allPoints.filter(p => {
-        const typeMatch = checkedTypes.length === 0 || 
-            checkedTypes.some(t => p.types.some(pt => pt.toLowerCase().includes(t)));
-        const ratingMatch = p.rating >= minRating;
-        
-        let radiusMatch = true;
-        if (userCoords && p.coords) {
-            const distance = calculateDistance(userCoords, p.coords);
-            radiusMatch = distance <= maxRadius;
-        }
-        
-        return typeMatch && ratingMatch && radiusMatch;
-    });
-    
-    updateFoundCount();
-    
-    if (currentView === 'list') {
-        renderList();
-    } else {
-        if (window.yandexMap) {
-            window.yandexMap.geoObjects.removeAll();
-            filteredPoints.forEach(p => {
-                addMarker(window.yandexMap, p.coords, p.name, p.address, p.phone, p.hours, p.types);
-            });
-            if (filteredPoints.length > 1) {
-                window.yandexMap.setBounds(window.yandexMap.geoObjects.getBounds(), {
-                    checkZoomRange: true,
-                    zoomMargin: 50
-                });
-            }
-        }
-    }
-    
-    document.getElementById('filtersSidebar')?.classList.remove('open');
-}
-
 function resetFilters() {
     // Сбрасываем чекбоксы
     document.querySelectorAll('input[name="type"]').forEach(cb => cb.checked = false);
@@ -512,21 +660,20 @@ function resetFilters() {
     // Возвращаем все пункты
     filteredPoints = [...allPoints];
     
-    updateFoundCount();
-    
-    if (currentView === 'list') {
+    loadPoints().then(() => {
+
         renderList();
-    } else {
-        if (window.yandexMap) {
-            window.yandexMap.geoObjects.removeAll();
-            filteredPoints.forEach(p => {
-                addMarker(window.yandexMap, p.coords, p.name, p.address, p.phone, p.hours, p.types);
-            });
-        }
-    }
-    
-    document.getElementById('filtersSidebar')?.classList.remove('open');
-    console.log('Сброс завершён');
+
+        refreshMapMarkers();
+
+        updateFoundCount();
+
+        document
+            .getElementById('filtersSidebar')
+            ?.classList.remove('open');
+
+        console.log('Сброс завершён');
+    });
 }
 
 function updateFoundCount() {
@@ -554,11 +701,6 @@ window.openSidePanel = function(id) {
     currentPanelPoint = point;
     const panel = document.getElementById('pointSidePanel');
     const content = document.getElementById('panelContent');
-    
-    // Формируем цены
-    const pricesHtml = point.prices ? Object.entries(point.prices).map(([m, p]) => `
-        <div class="panel-price-item"><span class="panel-price-material">${m}</span><span class="panel-price-value">${p}</span></div>
-    `).join('') : '';
     
     content.innerHTML = `
         <h2>${point.name}</h2>
@@ -591,62 +733,113 @@ window.openSidePanel = function(id) {
             <a href="tel:${point.phone.replace(/\D/g, '')}" class="panel-link" style="color:#609432; text-decoration:none;">${point.phone}</a>
             ${point.email ? `<a href="mailto:${point.email}" class="panel-link" style="color:#609432; text-decoration:none; display:block; margin-top:4px;">${point.email}</a>` : ''}
         </div>
+        
+        <!-- Принимаемые отходы -->
+        ${point.types?.length ? `
 
-        <!-- Цены -->
-        ${pricesHtml ? `
             <div class="panel-section">
-                <h4 class="panel-section-title">Цены</h4>
-                <div class="panel-prices" style="display:flex; flex-direction:column; gap:6px;">
-                    ${pricesHtml}
+
+                <h4 class="panel-section-title">
+                    Принимаемые отходы
+                </h4>
+
+                <div class="panel-types">
+
+                    ${point.types.map(type => `
+
+                        <div class="panel-type-item">
+
+                            <div class="panel-type-header">
+
+                                <span class="panel-type-name">
+
+                                    ${type.waste_name}
+
+                                </span>
+
+                                ${type.price ? `
+
+                                    <span class="panel-type-price">
+
+                                        ${type.price} ₽/кг
+
+                                    </span>
+
+                                ` : ''}
+
+                            </div>
+
+                            <div class="panel-type-category">
+
+                                ${type.waste_type_display}
+
+                            </div>
+
+                        </div>
+
+                    `).join('')}
+
                 </div>
+
             </div>
+
         ` : ''}
 
         <!-- Отзывы -->
         <div class="panel-section">
             <h4 class="panel-section-title">Отзывы</h4>
             
-            <div class="review-item">
-                <div class="review-top">
-                    <div class="review-user">
-                        <div class="review-avatar">i</div>
-                        <div class="review-info">
-                            <span class="review-name">ivan229</span>
-                            <span class="review-date">15.04.2026</span>
-                        </div>
-                    </div>
-                    <span class="review-stars">★★★★★</span>
-                </div>
-                <p class="review-text">Отличный пункт! Быстро принимают, персонал вежливый. Цены адекватные.</p>
-            </div>
+            ${point.reviewsData.map(review => `
 
-            <div class="review-item">
-                <div class="review-top">
-                    <div class="review-user">
-                        <div class="review-avatar">s</div>
-                        <div class="review-info">
-                            <span class="review-name">sonixks</span>
-                            <span class="review-date">02.04.2026</span>
-                        </div>
-                    </div>
-                    <span class="review-stars">★★★★☆</span>
-                </div>
-                <p class="review-text">Удобное расположение. Принимают без очередей в обеденное время.</p>
-            </div>
+                <div class="review-item">
 
-            <div class="review-item">
-                <div class="review-top">
-                    <div class="review-user">
-                        <div class="review-avatar">y</div>
-                        <div class="review-info">
-                            <span class="review-name">yastepan4ik</span>
-                            <span class="review-date">03.03.2026</span>
+                    <div class="review-top">
+
+                        <div class="review-user">
+
+                            <div class="review-avatar">
+
+                                ${review.user[0]}
+
+                            </div>
+
+                            <div class="review-info">
+
+                                <span class="review-name">
+
+                                    ${review.user}
+
+                                </span>
+
+                                <span class="review-date">
+
+                                    ${new Date(
+                                        review.created_at
+                                    ).toLocaleDateString('ru-RU')}
+
+                                </span>
+
+                            </div>
+
                         </div>
+
+                        <span class="review-stars">
+
+                            ${'★'.repeat(review.rating)}
+
+                        </span>
+
                     </div>
-                    <span class="review-stars">★★★★★</span>
+
+                    <p class="review-text">
+
+                        ${review.text}
+
+                    </p>
+
                 </div>
-                <p class="review-text">Вообще супер!!</p>
-            </div>
+
+            `).join('')}
         </div>
     `;
 

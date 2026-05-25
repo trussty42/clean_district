@@ -1474,3 +1474,52 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     line-height: 1.5;
 }
 
+.panel-types {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 14px;
+}
+
+.panel-type-item {
+
+    padding: 14px;
+
+    border-radius: 16px;
+
+    background: #f7f7f7;
+}
+
+.panel-type-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+.panel-type-name {
+
+    font-weight: 600;
+}
+
+.panel-type-price {
+
+    color: #609432;
+
+    font-weight: 700;
+}
+
+.panel-type-category {
+
+    margin-top: 6px;
+
+    color: #777;
+
+    font-size: 14px;
+}
