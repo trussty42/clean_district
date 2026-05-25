@@ -8,7 +8,7 @@ from api.serializers import (OrganizationNewsSerializer,
 from api.pagination import NewsPagination
 from api.service import has_organization_rights
 from api.filters import PickUpPointFilter, WasteTypesFilter
-from config.constants import COMPANY_LEADER
+from config.constants import COMPANY_LEADER, HAS_ORGANIZATION_RIGHTS
 from django.contrib.auth import authenticate
 from django.db import transaction
 from django.db.models import Avg, Q
@@ -99,10 +99,27 @@ class UserProfileView(RetrieveUpdateAPIView):
 
 class OrganizationViewSet(ModelViewSet):
 
-    queryset = Organization.objects.filter(status='active')
     serializer_class = OrganizationSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     http_method_names = ['post', 'get', 'patch', 'head', 'options', 'delete']
+
+    def get_queryset(self):
+
+        user = self.request.user
+
+        if not user.is_authenticated:
+            return Organization.objects.filter(status='active')
+
+        is_leader = Employee.objects.filter(
+            user=user,
+            role_in_organization=COMPANY_LEADER
+        ).exists()
+
+        if (user.role in HAS_ORGANIZATION_RIGHTS or is_leader
+                or user.is_staff):
+            return Organization.objects.all()
+
+        return Organization.objects.filter(status='active')
 
     def perform_create(self, serializer):
         with transaction.atomic():

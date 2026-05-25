@@ -116,10 +116,22 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = (
+            'id',
             'user',
             'name',
             'inn',
+            'status',
             'email',
+            'phone',
+            'website_url',
+            'logo',
+            'socials',
+        )
+
+        read_only_fields = (
+            'id',
+            'user',
+            'inn',
         )
         model = Organization
 
@@ -139,25 +151,38 @@ class OrganizationSerializer(serializers.ModelSerializer):
         return value
 
     def validate_inn(self, value):
-        organization_by_inn = Organization.objects.filter(inn=value).first()
-        if organization_by_inn:
+
+        queryset = Organization.objects.filter(inn=value)
+
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
             raise serializers.ValidationError(
                 'Организация с таким ИНН уже существует'
             )
-        if not validate_inn_by_api(value):
-            raise serializers.ValidationError(
-                'Компания по данному ИНН не найдена'
-            )
+
+        if self.instance is None:
+            if not validate_inn_by_api(value):
+                raise serializers.ValidationError(
+                    'Компания по данному ИНН не найдена'
+                )
+
         return value
 
     def validate_email(self, value):
-        organization_by_email = Organization.objects.filter(
-            email=value
-        ).first()
-        if organization_by_email:
+
+        queryset = Organization.objects.filter(email=value)
+
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
             raise serializers.ValidationError(
                 'Организация с таким email уже существует'
             )
+
+        return value
 
 
 class PointSerializer(serializers.ModelSerializer):
@@ -183,14 +208,30 @@ class PointSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
     def validate(self, data):
-        point = PickUpPoint.objects.filter(
-            organization=data['organization'],
-            adress=data['adress']
-        ).first()
-        if point:
+
+        organization = data.get(
+            'organization',
+            self.instance.organization if self.instance else None
+        )
+
+        adress = data.get(
+            'adress',
+            self.instance.adress if self.instance else None
+        )
+
+        queryset = PickUpPoint.objects.filter(
+            organization=organization,
+            adress=adress
+        )
+
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
             raise serializers.ValidationError(
                 'В этой организации уже существует точка с таким адресом'
             )
+
         return data
 
 

@@ -2,6 +2,20 @@
 let orgData = {}; // Пустой объект, заполнится при загрузке
 let pointsData = [];
 let newsData = [];
+const WASTE_TYPES = [
+        { value: 'plastic', label: 'Пластик' },
+        { value: 'glass', label: 'Стекло' },
+        { value: 'electronic', label: 'Электроника' },
+        { value: 'metal', label: 'Металл' },
+        { value: 'paper', label: 'Бумага и картон' },
+        { value: 'furniture', label: 'Мебель и крупногабарит' },
+        { value: 'textile', label: 'Текстиль' },
+        { value: 'battery', label: 'Батарейки' },
+        { value: 'construction', label: 'Строительный мусор' },
+        { value: 'tree', label: 'Дерево' },
+        { value: 'tire', label: 'Автошины' },
+        { value: 'bulb', label: 'Лампочки' }
+    ];
 
 // ===== ЗАГРУЗКА И ИНИЦИАЛИЗАЦИЯ =====
 document.addEventListener('DOMContentLoaded', async () => {
@@ -19,39 +33,57 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => window.location.href = 'dashboard.html', 1500);
         return;
     }
-
-    // 2. Загружаем данные создания организации (имя, ИНН, статус)
-    const allOrgs = JSON.parse(localStorage.getItem('ck_orgRequests')) || [];
-    const createdOrg = allOrgs.find(o => o.id == orgId);
     
-    if (!createdOrg) {
-        toasts?.error('Организация не найдена') || alert('Организация не найдена');
-        setTimeout(() => window.location.href = 'dashboard.html', 2000);
+    const token = localStorage.getItem('ck_access_token');
+
+    try {
+
+
+        const response = await fetch(
+            `/api/v1/organizations/${orgId}/`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error('Организация не найдена');
+        }
+
+        orgData = await response.json();
+        console.log(orgData);
+
+    } catch (err) {
+
+        console.error(err);
+
+        window.toasts?.error('Не удалось загрузить организацию');
+
+        setTimeout(() => {
+            window.location.href = 'dashboard.html';
+        }, 1500);
+
         return;
     }
 
-    // 3. Загружаем сохранённый профиль (контакты, соцсети, аватар)
-    const savedProfile = JSON.parse(localStorage.getItem(`ck_orgData_${orgId}`)) || {};
+    const pointsResponse = await fetch(
+        '/api/v1/points/',
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
 
-    // 4. Объединяем данные: создание + профиль
-    orgData = {
-        id: orgId,
-        name: createdOrg.name || '',
-        inn: createdOrg.inn || '',
-        status: createdOrg.status || 'pending',
-        phone: savedProfile.phone || '',
-        email: savedProfile.email || '',
-        website: savedProfile.website || '',
-        socials: savedProfile.socials || { vk: '', tg: '', max: '' },
-        avatar: savedProfile.avatar || null,
-        createdAt: createdOrg.createdAt || new Date().toISOString().split('T')[0]
-    };
+    const allPoints = await pointsResponse.json();
 
-    // 5. Сохраняем объединённые данные
-    localStorage.setItem(`ck_orgData_${orgId}`, JSON.stringify(orgData));
+    pointsData = allPoints.filter(
+        point => point.organization === orgData.id
+    );
 
     // 6. Загружаем остальные данные (пункты, новости) с динамическим ID
-    pointsData = JSON.parse(localStorage.getItem(`ck_orgPoints_${orgId}`)) || [];
     newsData = JSON.parse(localStorage.getItem(`ck_orgNews_${orgId}`)) || [];
 
     // 7. Запускаем инициализацию интерфейса
@@ -65,6 +97,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     initAnalytics();      // Аналитика
     initEmployees();      // Сотрудники
     initOrgLogout();      // Выход
+    initAddressSuggestions(
+        'pointAddressInput',
+        'addressSuggestions'
+    );
+
+    initAddressSuggestions(
+        'editPointAddress',
+        'editAddressSuggestions'
+    );
+    initPhoneMask('pointPhoneInput');
+    initPhoneMask('editPointPhone');
+    initPhoneMask('orgInputPhone');
 });
 
 // ===== ШАПКА ОРГАНИЗАЦИИ =====
@@ -73,7 +117,7 @@ function initOrgHeader() {
     const badgeEl = document.getElementById('orgStatusBadge');
     const logoEl = document.getElementById('orgLogoPreview');
     
-    if (nameEl) nameEl.textContent = orgData.name || 'Загрузка...';
+    if (nameEl) nameEl.textContent = orgData.name || '';
     
     if (badgeEl) {
         const statusMap = { pending: 'На проверке', verified: 'Проверена', rejected: 'Отклонена' };
@@ -81,8 +125,8 @@ function initOrgHeader() {
         badgeEl.className = `org-status-badge ${orgData.status}`;
     }
     
-    if (logoEl && orgData.avatar) {
-        logoEl.innerHTML = `<img src="${orgData.avatar}" style="width:100%;height:100%;border-radius:12px;object-fit:cover;" />`;
+    if (logoEl && orgData.logo) {
+        logoEl.innerHTML = `<img src="${orgData.logo}" style="width:100%;height:100%;border-radius:12px;object-fit:cover;" />`;
     }
 }
 
@@ -106,7 +150,7 @@ function initOrgProfile() {
         { id: 'orgInputInn', key: 'inn' },
         { id: 'orgInputPhone', key: 'phone' },
         { id: 'orgInputEmail', key: 'email' },
-        { id: 'orgInputWebsite', key: 'website' },
+        { id: 'orgInputWebsite', key: 'website_url' },
         { id: 'orgInputVK', key: 'socials.vk' },
         { id: 'orgInputTG', key: 'socials.tg' },
         { id: 'orgInputMAX', key: 'socials.max' }
@@ -132,44 +176,89 @@ function initOrgProfile() {
     });
 
     // Аватар
-    if (orgData.avatar) {
-        updateOrgAvatarPreview(orgData.avatar);
+    if (orgData.logo) {
+        updateOrgAvatarPreview(orgData.logo);
         document.getElementById('orgRemoveAvatar')?.style.setProperty('display', 'inline-block');
     }
 
     // Сохранение формы
     const form = document.getElementById('orgProfileForm');
     if (form) {
-        // Удаляем старые обработчики клонированием
-        const newForm = form.cloneNode(true);
-        form.parentNode.replaceChild(newForm, form);
         
-        newForm.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
+
             e.preventDefault();
-            
-            // Обновляем orgData из формы
-            orgData.name = document.getElementById('orgInputName').value.trim();
-            orgData.inn = document.getElementById('orgInputInn').value.trim();
-            orgData.phone = document.getElementById('orgInputPhone').value.trim();
-            orgData.email = document.getElementById('orgInputEmail').value.trim();
-            orgData.website = document.getElementById('orgInputWebsite').value.trim();
-            orgData.socials = {
-                vk: document.getElementById('orgInputVK').value.trim(),
-                tg: document.getElementById('orgInputTG').value.trim(),
-                max: document.getElementById('orgInputMAX').value.trim()
+
+            const token = localStorage.getItem('ck_access_token');
+
+            const payload = {
+                name: document.getElementById('orgInputName').value.trim(),
+
+                phone: document
+                    .getElementById('orgInputPhone')
+                    .value
+                    .replace(/\D/g, '')
+                    .replace(/^8/, '7')
+                    .replace(/^7/, '+7'),
+
+                email: document.getElementById('orgInputEmail').value.trim(),
+
+                website_url: document.getElementById('orgInputWebsite').value.trim(),
+
+                socials: {
+                    vk: document.getElementById('orgInputVK').value.trim(),
+                    tg: document.getElementById('orgInputTG').value.trim(),
+                    max: document.getElementById('orgInputMAX').value.trim()
+                }
             };
 
-            // Сохраняем с динамическим ключом
-            localStorage.setItem(`ck_orgData_${orgData.id}`, JSON.stringify(orgData));
-            
-            // Обновляем шапку
-            initOrgHeader();
-            
-            toasts?.success('Данные организации обновлены!', { duration: 3000 });
-            const statusEl = document.getElementById('orgFormStatus');
-            if (statusEl) {
-                statusEl.textContent = 'Сохранено!';
-                setTimeout(() => statusEl.textContent = '', 3000);
+            try {
+                console.log(payload);
+                const response = await fetch(
+                    `/api/v1/organizations/${orgData.id}/`,
+                    {
+                        method: 'PATCH',
+
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+
+                        body: JSON.stringify(payload)
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+
+                    console.error(data);
+
+                    const firstError =
+                        Object.values(data)[0]?.[0] ||
+                        data.detail ||
+                        'Ошибка сохранения';
+
+                    throw new Error(firstError);
+                }
+
+                orgData = data;
+
+                initOrgHeader();
+
+                window.toasts?.success(
+                    'Данные организации сохранены!',
+                    { duration: 3000 }
+                );
+
+            } catch (err) {
+
+                console.error(err);
+
+                window.toasts?.error(
+                    err.message || 'Не удалось сохранить изменения',
+                    { duration: 3000 }
+                );
             }
         });
     }
@@ -193,11 +282,11 @@ function initOrgAvatarUpload() {
         if (!file) return;
 
         if (file.size > 5 * 1024 * 1024) {
-            toasts?.warning('Файл слишком большой. Максимум 5MB.', { duration: 3000 });
+            window.toasts?.warning('Файл слишком большой. Максимум 5MB.', { duration: 3000 });
             return;
         }
         if (!file.type.startsWith('image/')) {
-            toasts?.warning('Выберите изображение (JPG, PNG).', { duration: 3000 });
+            window.toasts?.warning('Выберите изображение (JPG, PNG).', { duration: 3000 });
             return;
         }
 
@@ -206,18 +295,18 @@ function initOrgAvatarUpload() {
             const base64 = event.target.result;
             updateOrgAvatarPreview(base64);
             
-            orgData.avatar = base64;
+            orgData.logo = base64;
             localStorage.setItem(`ck_orgData_${orgData.id}`, JSON.stringify(orgData));
             
             if (removeBtn) removeBtn.style.display = 'inline-block';
-            toasts?.success('Логотип обновлён!', { duration: 2000 });
+            window.toasts?.success('Логотип обновлён!', { duration: 2000 });
         };
         reader.readAsDataURL(file);
     });
 
     if (removeBtn) {
         removeBtn.addEventListener('click', () => {
-            orgData.avatar = null;
+            orgData.logo = null;
             localStorage.setItem(`ck_orgData_${orgData.id}`, JSON.stringify(orgData));
             
             const img = avatarPreview.querySelector('img');
@@ -226,7 +315,7 @@ function initOrgAvatarUpload() {
             removeBtn.style.display = 'none';
             avatarInput.value = '';
             
-            toasts?.info('Логотип удалён', { duration: 2000 });
+            window.toasts?.info('Логотип удалён', { duration: 2000 });
         });
     }
 }
@@ -262,6 +351,8 @@ function initPoints() {
             nameInput.style.background = '#f8f9fa';      // Серый фон
             nameInput.style.cursor = 'not-allowed';      // Курсор запрета
         }
+        document.getElementById('pointPhoneInput').value =
+            orgData.phone || '';
         
         modal?.classList.add('active');
     });
@@ -275,38 +366,97 @@ function initPoints() {
         resetPricesList(); // Очищаем динамические строки
     });
     
-    // Отправка формы
-    document.getElementById('addPointForm')?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        
-        // ✅ Сбор цен из динамических строк
-        const prices = {};
-        document.querySelectorAll('.price-row').forEach(row => {
-            const type = row.querySelector('.price-type-input').value.trim();
-            const price = row.querySelector('.price-value-input').value;
-            if (type && price > 0) {
-                prices[type] = parseFloat(price);
-            }
-        });
+    document.getElementById('addPointForm')
+    ?.addEventListener('submit', async (e) => {
 
-        const newPoint = {
-            id: Date.now(),
-            name: formData.get('pointName'),
-            address: formData.get('address'),
-            schedule: formData.get('schedule'),
-            phone: formData.get('phone'),
-            prices: prices // Сохраняем объект цен
+        e.preventDefault();
+
+        const token = localStorage.getItem('ck_access_token');
+
+        const formData = new FormData(e.target);
+
+        const lat = document
+            .getElementById('pointAddressInput')
+            .dataset.lat;
+
+        const lon = document
+            .getElementById('pointAddressInput')
+            .dataset.lon;
+
+        if (!lat || !lon) {
+
+            window.toasts?.warning(
+                'Выберите адрес из подсказок',
+                { duration: 3000 }
+            );
+
+            return;
+        }
+
+        const payload = {
+
+            organization: orgData.id,
+
+            adress: formData.get('address'),
+
+            work_schedule: formData.get('schedule'),
+
+            location: `POINT(${parseFloat(lon)} ${parseFloat(lat)})`
         };
-        
-        pointsData.push(newPoint);
-        localStorage.setItem(`ck_orgPoints_${orgData.id}`, JSON.stringify(pointsData));
-        renderPoints();
-        
-        document.getElementById('addPointModal')?.classList.remove('active');
-        e.target.reset();
-        resetPricesList();
-        toasts?.success('Пункт добавлен!', { duration: 3000 });
+
+        try {
+            console.log(payload)
+
+            const response = await fetch(
+                '/api/v1/points/',
+                {
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+
+                const firstError =
+                    Object.values(data)[0]?.[0] ||
+                    data.detail ||
+                    'Ошибка создания';
+
+                throw new Error(firstError);
+            }
+
+            pointsData.push(data);
+
+            renderPoints();
+
+            document
+                .getElementById('addPointModal')
+                ?.classList.remove('active');
+
+            e.target.reset();
+
+            window.toasts?.success(
+                'Пункт добавлен!',
+                { duration: 3000 }
+            );
+
+        } catch (err) {
+
+            console.error(err);
+
+            window.toasts?.error(
+                err.message,
+                { duration: 3000 }
+            );
+        }
     });
 }
 
@@ -317,17 +467,56 @@ function initPricesBlock() {
     if (!list || !addBtn) return;
 
     const createRow = () => {
+
         const row = document.createElement('div');
+
         row.className = 'price-row';
+
         row.innerHTML = `
+
             <div class="price-type-group">
-                <input type="text" class="price-type-input" placeholder="Тип отхода" list="wasteTypesOptions" required />
+
+                <select
+                    class="price-type-input"
+                    required
+                >
+
+                    <option value="">
+                        Выберите тип отхода
+                    </option>
+
+                    ${WASTE_TYPES.map(item => `
+                        <option value="${item.value}">
+                            ${item.label}
+                        </option>
+                    `).join('')}
+
+                </select>
+
             </div>
+
             <div class="price-value-group">
-                <input type="number" class="price-value-input" placeholder="Цена ₽/кг" step="0.1" min="0" required />
+
+                <input
+                    type="number"
+                    class="price-value-input"
+                    placeholder="Цена ₽/кг"
+                    step="0.1"
+                    min="0"
+                    required
+                />
+
             </div>
-            <button type="button" class="btn-remove-price" title="Удалить">&times;</button>
+
+            <button
+                type="button"
+                class="btn-remove-price"
+                title="Удалить"
+            >
+                &times;
+            </button>
         `;
+
         return row;
     };
 
@@ -355,40 +544,66 @@ function renderPoints() {
     if (!list) return;
     if (!Array.isArray(pointsData)) pointsData = [];
 
-    if (pointsData.length === 0) {
-        list.innerHTML = '<div class="empty-state" style="text-align:center;padding:40px;color:#888;">Нет добавленных пунктов</div>';
-        return;
-    }
-
     list.innerHTML = pointsData.map(point => `
         <div class="point-card" onclick="openEditPointModal(${point.id})">
             <div class="point-info">
-                <h4>${point.name}</h4>
-                <span class="point-address">${point.address}</span>
+                <h4>${orgData.name}</h4>
+                <span class="point-adress">${point.adress}</span>
             </div>
         </div>
     `).join('');
 }
 
 // ===== ОТКРЫТИЕ МОДАЛЬНОГО ОКНА РЕДАКТИРОВАНИЯ =====
-window.openEditPointModal = function(id) {
+window.openEditPointModal = async function(id) {
+    const token = localStorage.getItem('ck_access_token');
+
+    const wasteResponse = await fetch(
+        `/api/v1/waste-types/?point=${id}`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const wasteData = await wasteResponse.json();
     const point = pointsData.find(p => p.id === id);
     if (!point) return;
 
     document.getElementById('editPointId').value = point.id;
-    document.getElementById('editPointName').value = point.name;
-    document.getElementById('editPointAddress').value = point.address;
-    document.getElementById('editPointSchedule').value = point.schedule || '';
-    document.getElementById('editPointPhone').value = point.phone || '';
+    document.getElementById('editPointName').value = orgData.name;
+    document.getElementById('editPointPhone').value =
+        orgData.phone || '';
+    document.getElementById('editPointAddress').value = point.adress;
+    document.getElementById('editPointSchedule').value = point.work_schedule || '';
 
-    // Заполняем цены
-    const pricesList = document.getElementById('editPricesList');
+    const pricesList = document.getElementById(
+        'editPricesList'
+    );
+
     pricesList.innerHTML = '';
-    if (point.prices && Object.keys(point.prices).length > 0) {
-        for (const [type, price] of Object.entries(point.prices)) {
-            addPriceRowToEditList(type, price);
-        }
+
+    const prices = wasteData.map(item => ({
+        id: item.id,
+        type: item.waste_type,
+        name: item.waste_name,
+        price: item.price
+    }));
+
+    if (prices.length > 0) {
+
+        prices.forEach(item => {
+            addPriceRowToEditList(
+                item.type,
+                item.price,
+                item.id,
+                item.name
+            );
+        });
+
     } else {
+
         addPriceRowToEditList('', '');
     }
 
@@ -396,18 +611,56 @@ window.openEditPointModal = function(id) {
 };
 
 // ===== ВСПОМОГАТЕЛЬНАЯ: ДОБАВЛЕНИЕ СТРОКИ ЦЕН В МОДАЛКУ РЕДАКТИРОВАНИЯ =====
-function addPriceRowToEditList(type = '', price = '') {
+function addPriceRowToEditList(
+    type = '',
+    price = '',
+    id = null,
+    name = ''
+) {
     const list = document.getElementById('editPricesList');
     const row = document.createElement('div');
     row.className = 'price-row';
     row.innerHTML = `
+
         <div class="price-type-group">
-            <input type="text" class="price-type-input" value="${type}" placeholder="Тип отхода" list="wasteTypesOptions" required />
+
+            <select class="price-type-input" required>
+
+                <option value="">
+                    Выберите тип отхода
+                </option>
+
+                ${WASTE_TYPES.map(item => `
+                    <option
+                        value="${item.value}"
+                        ${item.value === type ? 'selected' : ''}
+                    >
+                        ${item.label}
+                    </option>
+                `).join('')}
+
+            </select>
+
         </div>
+
         <div class="price-value-group">
-            <input type="number" class="price-value-input" value="${price}" placeholder="₽/кг" step="0.1" min="0" required />
+            <input
+                type="number"
+                class="price-value-input"
+                placeholder="Цена ₽/кг"
+                step="0.1"
+                min="0"
+                required
+            />
         </div>
-        <button type="button" class="btn-remove-price" title="Удалить">&times;</button>
+
+        <button
+            type="button"
+            class="btn-remove-price"
+            title="Удалить"
+        >
+            &times;
+        </button>
     `;
     list.appendChild(row);
 }
@@ -441,47 +694,235 @@ function initEditPointModal() {
     });
 
     // Сохранение изменений
-    document.getElementById('editPointForm')?.addEventListener('submit', (e) => {
+    document.getElementById('editPointForm')
+    ?.addEventListener('submit', async (e) => {
+
         e.preventDefault();
-        const id = parseInt(document.getElementById('editPointId').value);
-        const idx = pointsData.findIndex(p => p.id === id);
+
+        const token = localStorage.getItem('ck_access_token');
+
+        const id = parseInt(
+            document.getElementById('editPointId').value
+        );
+
+        const idx = pointsData.findIndex(
+            p => p.id === id
+        );
+
         if (idx === -1) return;
 
-        // Собираем цены из модалки
-        const prices = {};
-        document.querySelectorAll('#editPricesList .price-row').forEach(row => {
-            const type = row.querySelector('.price-type-input').value.trim();
-            const price = row.querySelector('.price-value-input').value;
-            if (type && price && parseFloat(price) > 0) {
-                prices[type] = parseFloat(price);
-            }
-        });
+        const payload = {
 
-        // Обновляем данные
-        pointsData[idx] = {
-            ...pointsData[idx],
-            address: document.getElementById('editPointAddress').value.trim(),
-            schedule: document.getElementById('editPointSchedule').value.trim(),
-            phone: document.getElementById('editPointPhone').value.trim(),
-            prices: prices
+            adress: document
+                .getElementById('editPointAddress')
+                .value
+                .trim(),
+
+            work_schedule: document
+                .getElementById('editPointSchedule')
+                .value
+                .trim()
         };
 
-        localStorage.setItem(`ck_orgPoints_${orgData.id}`, JSON.stringify(pointsData));
-        renderPoints();
-        document.getElementById('editPointModal').classList.remove('active');
-        window.toasts?.success('Пункт обновлён!', { duration: 3000 });
+        try {
+
+            const response = await fetch(
+                `/api/v1/points/${id}/`,
+                {
+                    method: 'PATCH',
+
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+
+                const firstError =
+                    Object.values(data)[0]?.[0] ||
+                    data.detail ||
+                    'Ошибка сохранения';
+
+                throw new Error(firstError);
+            }
+
+            pointsData[idx] = data;
+
+            const priceRows = document.querySelectorAll(
+                '#editPricesList .price-row'
+            );
+
+            await Promise.all(
+
+                [...priceRows].map(async row => {
+
+                    const wasteId = row
+                        .querySelector('.waste-id-input')
+                        ?.value;
+
+                    const wasteType = row
+                        .querySelector('.price-type-input')
+                        ?.value
+                        .trim();
+
+                    const price = parseFloat(
+                        row.querySelector('.price-value-input')?.value
+                    );
+
+                    const payload = {
+
+                        point: id,
+
+                        waste_name: wasteType,
+
+                        waste_type: wasteType,
+
+                        preparation: '',
+
+                        not_accepted: '',
+
+                        price: price,
+
+                        is_actual_price: true
+                    };
+
+                    // UPDATE
+                    if (wasteId) {
+
+                        const res = await fetch(
+                            `/api/v1/waste-types/${wasteId}/`,
+                            {
+                                method: 'PATCH',
+
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    Authorization: `Bearer ${token}`
+                                },
+
+                                body: JSON.stringify(payload)
+                            }
+                        );
+
+                        const responseData = await res.json();
+
+                        console.log(responseData);
+
+                        if (!res.ok) {
+
+                            const field = Object.keys(responseData)[0];
+
+                            throw new Error(
+                                `${field}: ${responseData[field]?.[0]}`
+                            );
+                        }
+
+                        return responseData;
+                    }
+
+                    // CREATE
+                    const res = await fetch(
+                        '/api/v1/waste-types/',
+                        {
+                            method: 'POST',
+
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${token}`
+                            },
+
+                            body: JSON.stringify(payload)
+                        }
+                    );
+
+                    const responseData = await res.json();
+
+                    console.log(responseData);
+
+                    if (!res.ok) {
+
+                        const field = Object.keys(responseData)[0];
+
+                        throw new Error(
+                            `${field}: ${responseData[field]?.[0]}`
+                        );
+                    }
+
+                    return responseData;
+                })
+            );
+            renderPoints();
+
+            document
+                .getElementById('editPointModal')
+                .classList.remove('active');
+
+            window.toasts?.success(
+                'Пункт обновлён!',
+                { duration: 3000 }
+            );
+
+        } catch (err) {
+
+            console.error(err);
+
+            window.toasts?.error(
+                err.message,
+                { duration: 3000 }
+            );
+        }
     });
 }
 
-window.deletePoint = function(id) {
-    if (confirm('Удалить этот пункт?')) {
-        const idx = pointsData.findIndex(p => p.id === id);
-        if (idx > -1) {
-            pointsData.splice(idx, 1);
-            localStorage.setItem(`ck_orgPoints_${orgData.id}`, JSON.stringify(pointsData));
-            renderPoints();
-            toasts?.info('Пункт удалён', { duration: 2000 });
+window.deletePoint = async function(id) {
+
+    if (!confirm('Удалить этот пункт?')) {
+        return;
+    }
+
+    const token = localStorage.getItem('ck_access_token');
+
+    try {
+
+        const response = await fetch(
+            `/api/v1/points/${id}/`,
+            {
+                method: 'DELETE',
+
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error('Не удалось удалить пункт');
         }
+
+        pointsData = pointsData.filter(
+            point => point.id !== id
+        );
+
+        renderPoints();
+
+        window.toasts?.info(
+            'Пункт удалён',
+            { duration: 2000 }
+        );
+
+    } catch (err) {
+
+        console.error(err);
+
+        window.toasts?.error(
+            err.message,
+            { duration: 3000 }
+        );
     }
 };
 
@@ -524,7 +965,7 @@ window.sendReply = function(feedbackId, btn) {
     const textarea = btn.closest('.feedback-reply')?.querySelector('textarea');
     const reply = textarea?.value.trim();
     if (!reply) {
-        toasts?.warning('Напишите текст ответа', { duration: 2000 });
+        window.toasts?.warning('Напишите текст ответа', { duration: 2000 });
         return;
     }
     
@@ -532,7 +973,7 @@ window.sendReply = function(feedbackId, btn) {
     if (fb) {
         fb.reply = reply;
         renderFeedback();
-        toasts?.success('Ответ отправлен', { duration: 2000 });
+        window.toasts?.success('Ответ отправлен', { duration: 2000 });
     }
 };
 
@@ -567,7 +1008,7 @@ function initNews() {
         
         document.getElementById('addNewsModal')?.classList.remove('active');
         e.target.reset();
-        toasts?.success('Новость отправлена на модерацию!', { duration: 4000 });
+        window.toasts?.success('Новость отправлена на модерацию!', { duration: 4000 });
     });
 }
 
@@ -693,7 +1134,7 @@ function initEmployees() {
     document.getElementById('inviteForm')?.addEventListener('submit', (e) => {
         e.preventDefault();
         const email = e.target.email.value;
-        toasts?.success(`Приглашение отправлено на ${email}`, { duration: 4000 });
+        window.toasts?.success(`Приглашение отправлено на ${email}`, { duration: 4000 });
         document.getElementById('inviteModal')?.classList.remove('active');
         e.target.reset();
     });
@@ -731,7 +1172,7 @@ window.removeEmployee = function(id) {
         if (idx > -1) {
             employeesData.splice(idx, 1);
             renderEmployees();
-            toasts?.info('Сотрудник удалён', { duration: 2000 });
+            window.toasts?.info('Сотрудник удалён', { duration: 2000 });
         }
     }
 };
@@ -743,4 +1184,168 @@ function initOrgLogout() {
             window.location.href = 'dashboard.html';
         }
     });
+}
+
+// ===== DADATA ADDRESS SUGGEST =====
+
+const DADATA_TOKEN = '2b155d95750decc0aa5471ea92398f5cc817332b';
+
+function initAddressSuggestions(inputId, suggestionsId) {
+    const input = document.getElementById(inputId);
+    const suggestions = document.getElementById(suggestionsId);
+
+    if (!input || !suggestions) return;
+
+    let debounceTimer;
+
+    input.addEventListener('input', () => {
+        const query = input.value.trim();
+
+        clearTimeout(debounceTimer);
+
+        if (query.length < 3) {
+            suggestions.style.display = 'none';
+            return;
+        }
+
+        debounceTimer = setTimeout(async () => {
+            try {
+
+                const response = await fetch(
+                    'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': `Token ${DADATA_TOKEN}`
+                        },
+                        body: JSON.stringify({
+                            query: query,
+                            count: 10
+                        })
+                    }
+                );
+
+                const data = await response.json();
+
+                renderSuggestions(
+                    data.suggestions || [],
+                    input,
+                    suggestions
+                );
+
+            } catch (err) {
+                console.error('DaData error:', err);
+            }
+        }, 300);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.style.display = 'none';
+        }
+    });
+}
+
+function renderSuggestions(items, input, container) {
+
+    if (!items.length) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.innerHTML = items.map(item => `
+        <div class="address-suggestion-item">
+            ${item.value}
+        </div>
+    `).join('');
+
+    container.style.display = 'block';
+
+    container.querySelectorAll('.address-suggestion-item')
+        .forEach((el, index) => {
+
+            el.addEventListener('click', () => {
+                input.value = items[index].value;
+
+                input.dataset.lat = items[index].data.geo_lat || '';
+                input.dataset.lon = items[index].data.geo_lon || '';
+                input.blur();
+                container.style.display = 'none';
+            });
+
+        });
+}
+
+// ===== PHONE MASK =====
+
+function initPhoneMask(inputId) {
+
+    const input = document.getElementById(inputId);
+
+    if (!input) return;
+
+    input.addEventListener('input', formatPhone);
+    input.addEventListener('focus', onFocus);
+    input.addEventListener('blur', onBlur);
+
+    function onFocus() {
+
+        if (!input.value) {
+            input.value = '+7 ';
+        }
+    }
+
+    function onBlur() {
+
+        if (input.value === '+7 ') {
+            input.value = '';
+        }
+    }
+
+    function formatPhone() {
+
+        let value = input.value.replace(/\D/g, '');
+
+        // удаляем первую 7 или 8
+        if (value.startsWith('7')) {
+            value = value.slice(1);
+        }
+
+        if (value.startsWith('8')) {
+            value = value.slice(1);
+        }
+
+        value = value.substring(0, 10);
+
+        let result = '+7';
+
+        if (value.length > 0) {
+            result += ' (' + value.substring(0, 3);
+        }
+
+        if (value.length >= 4) {
+            result += ') ' + value.substring(3, 6);
+        }
+
+        if (value.length >= 7) {
+            result += '-' + value.substring(6, 8);
+        }
+
+        if (value.length >= 9) {
+            result += '-' + value.substring(8, 10);
+        }
+
+        input.value = result;
+    }
+}
+
+function getWasteLabel(value) {
+
+    const item = WASTE_TYPES.find(
+        t => t.value === value
+    );
+
+    return item ? item.label : value;
 }

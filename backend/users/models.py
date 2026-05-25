@@ -63,11 +63,23 @@ class Organization(models.Model):
     )
     inn = models.CharField(max_length=12, verbose_name='ИНН', unique=True)
     phone = PhoneNumberField(verbose_name='Номер телефона')
-    email = models.EmailField(verbose_name='Почта', unique=True, blank=True, null=True)
+    email = models.EmailField(
+        verbose_name='Почта', unique=True,
+        blank=True, null=True
+    )
+    socials = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name='Социальные сети'
+    )
     logo = models.ImageField(
         upload_to='organizations/', verbose_name='Логотип'
     )
-    website_url = models.URLField(verbose_name='Адрес сайта')
+    website_url = models.URLField(
+        verbose_name='Адрес сайта',
+        blank=True,
+        null=True
+    )
     rating_score = models.DecimalField(
         max_digits=3,
         decimal_places=2,

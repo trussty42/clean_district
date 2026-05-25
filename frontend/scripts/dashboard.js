@@ -638,7 +638,11 @@ function initOrganizations() {
     }
 
     orgList.innerHTML = organizations.map(org => `
-        <div class="org-card" data-id="${org.id}">
+        <div
+            class="org-card"
+            data-id="${org.id}"
+            onclick="openOrgDashboard(${org.id})"
+        >
             <div class="org-info">
                 <span class="org-name">${org.name}</span>
                 <span class="org-role">${org.role}</span>

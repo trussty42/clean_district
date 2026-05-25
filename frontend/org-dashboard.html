@@ -11,6 +11,7 @@
     <link rel="icon" href="./images/logo.svg" type="image/svg+xml">
     <script src="./scripts/auth.js" defer></script>
     <script src="./scripts/org-dashboard.js" defer></script>
+    <script src="./scripts/toast.js" defer></script>
 </head>
 <body>
     <header class="header">
@@ -62,7 +63,7 @@
                         </svg>
                     </div>
                     <div class="org-info">
-                        <span class="org-name" id="orgNameDisplay">Загрузка...</span>
+                        <span class="org-name" id="orgNameDisplay"></span>
                         <span class="org-status-badge" id="orgStatusBadge">На проверке</span>
                     </div>
                 </div>
@@ -188,7 +189,6 @@
                                 
                                 <div class="form-actions">
                                     <button type="submit" class="btn-primary">Сохранить изменения</button>
-                                    <span class="form-status" id="orgFormStatus"></span>
                                 </div>
                             </div>
 
@@ -337,7 +337,18 @@
                     <!-- Адрес -->
                     <div class="form-group">
                         <label>Адрес</label>
-                        <input type="text" name="address" required placeholder="г. Екатеринбург, ул. Ленина, д. 10" />
+                        <div class="address-wrapper">
+                            <input 
+                                type="text"
+                                id="pointAddressInput"
+                                name="address"
+                                required
+                                autocomplete="off"
+                                placeholder="г. Екатеринбург, ул. Ленина, д. 10"
+                            />
+
+                            <div class="address-suggestions" id="addressSuggestions"></div>
+                        </div>
                     </div>
 
                     <div class="form-row">
@@ -349,7 +360,13 @@
                         <!-- Контакты -->
                         <div class="form-group">
                             <label>Телефон</label>
-                            <input type="tel" name="phone" placeholder="+7 (___) ___-__-__" />
+                            <input
+                                type="tel"
+                                id="pointPhoneInput"
+                                name="phone"
+                                placeholder="+7 (___) ___-__-__"
+                                readonly
+                            />
                         </div>
                     </div>
 
@@ -400,7 +417,16 @@
                 
                 <div class="form-group">
                     <label>Адрес *</label>
-                    <input type="text" id="editPointAddress" required />
+                    <div class="address-wrapper">
+                        <input 
+                            type="text"
+                            id="editPointAddress"
+                            required
+                            autocomplete="off"
+                        />
+
+                        <div class="address-suggestions" id="editAddressSuggestions"></div>
+                    </div>
                 </div>
                 
                 <div class="form-row">
@@ -410,7 +436,12 @@
                     </div>
                     <div class="form-group">
                         <label>Телефон</label>
-                        <input type="tel" id="editPointPhone" placeholder="+7 (___) ___-__-__" />
+                        <input
+                            type="tel"
+                            id="editPointPhone"
+                            placeholder="+7 (___) ___-__-__"
+                            readonly
+                        />
                     </div>
                 </div>
                 

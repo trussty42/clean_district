@@ -49,7 +49,9 @@ class PickUpPoint(models.Model):
 
     @property
     def average_rating(self):
-        return self.review.filter(is_published=True).aggregate(models.Avg('rating'))['rating__avg']
+        return self.review.filter(
+            is_published=True
+        ).aggregate(models.Avg('rating'))['rating__avg']
 
 
 class PointWasteTypes(models.Model):
@@ -73,7 +75,7 @@ class PointWasteTypes(models.Model):
     class Meta:
         verbose_name = 'Приём отхода в пункте'
         verbose_name_plural = 'Приёмы отходов в пунктах'
-        unique_together = ('point', 'waste_type')
+        unique_together = ('point', 'waste_name')
 
     def __str__(self):
         return f'{self.point.adress} - {self.waste_name}'
@@ -87,7 +89,8 @@ class SubmissionHistory(models.Model):
         PickUpPoint, on_delete=models.CASCADE, verbose_name='Пункт приёма'
     )
     waste_type = models.ForeignKey(
-        PointWasteTypes, on_delete=models.SET_NULL, null=True, verbose_name='Тип отхода'
+        PointWasteTypes, on_delete=models.SET_NULL,
+        null=True, verbose_name='Тип отхода'
     )
     weight = models.DecimalField(
         max_digits=10, decimal_places=2, verbose_name='Вес (кг)'
@@ -95,7 +98,9 @@ class SubmissionHistory(models.Model):
     total_price = models.DecimalField(
         max_digits=10, decimal_places=2, verbose_name='Сумма (руб)'
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата сдачи')
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name='Дата сдачи'
+    )
 
     class Meta:
         verbose_name = 'История сдачи'
@@ -104,4 +109,6 @@ class SubmissionHistory(models.Model):
         default_related_name = 'submissions'
 
     def __str__(self):
-        return f'{self.created_at.strftime("%Y-%m-%d")} - {self.user.username} - {self.weight} кг'
+        return f'{self.created_at.strftime(
+            "%Y-%m-%d"
+        )} - {self.user.username} - {self.weight} кг'
