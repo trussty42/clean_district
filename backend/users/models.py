@@ -62,7 +62,11 @@ class Organization(models.Model):
         max_length=255, verbose_name='Название', unique=True
     )
     inn = models.CharField(max_length=12, verbose_name='ИНН', unique=True)
-    phone = PhoneNumberField(verbose_name='Номер телефона')
+    phone = PhoneNumberField(
+        verbose_name='Номер телефона',
+        null=True,
+        blank=True
+    )
     email = models.EmailField(
         verbose_name='Почта', unique=True,
         blank=True, null=True
@@ -73,7 +77,8 @@ class Organization(models.Model):
         verbose_name='Социальные сети'
     )
     logo = models.ImageField(
-        upload_to='organizations/', verbose_name='Логотип'
+        upload_to='organizations/', verbose_name='Логотип',
+        null=True, blank=True
     )
     website_url = models.URLField(
         verbose_name='Адрес сайта',

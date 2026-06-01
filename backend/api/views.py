@@ -1,19 +1,7 @@
-from api.serializers import (OrganizationNewsSerializer,
-                             OrganizationSerializer, PointSerializer,
-                             PointWasteTypeSerializer,
-                             SubmissionHistorySerializer, UserLoginSerializer,
-                             UserProfileSerializer, UserRegistrationSerializer,
-                             ReviewSerializer)
-from api.pagination import NewsPagination
-from api.service import has_organization_rights
-from api.filters import PickUpPointFilter, WasteTypesFilter
-from config.constants import COMPANY_LEADER, HAS_ORGANIZATION_RIGHTS
 from django.contrib.auth import authenticate
 from django.db import transaction
 from django.db.models import Avg, Count, Q
 from django_filters.rest_framework import DjangoFilterBackend
-from news.models import OrganizationNews
-from points.models import PickUpPoint, PointWasteTypes, SubmissionHistory
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import PermissionDenied
@@ -23,6 +11,18 @@ from rest_framework.permissions import (IsAuthenticated,
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from api.filters import PickUpPointFilter, WasteTypesFilter
+from api.pagination import NewsPagination
+from api.serializers import (OrganizationNewsSerializer,
+                             OrganizationSerializer, PointSerializer,
+                             PointWasteTypeSerializer, ReviewSerializer,
+                             SubmissionHistorySerializer, UserLoginSerializer,
+                             UserProfileSerializer, UserRegistrationSerializer)
+from api.service import has_organization_rights
+from config.constants import COMPANY_LEADER, HAS_ORGANIZATION_RIGHTS
+from news.models import OrganizationNews
+from points.models import PickUpPoint, PointWasteTypes, SubmissionHistory
 from reviews.models import Review
 from users.models import Employee, Organization, User
 
@@ -266,7 +266,14 @@ class ReviewViewSet(ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        return Review.objects.filter(is_published=True).order_by('-created_at')
+        queryset = Review.objects.all()
+
+        point_id = self.request.query_params.get('point')
+
+        if point_id:
+            queryset = queryset.filter(point_id=point_id)
+
+        return queryset.order_by('-created_at')
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user, is_published=False)

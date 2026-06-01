@@ -17,6 +17,11 @@ class Review(models.Model):
     is_published = models.BooleanField(
         default=False, verbose_name='Опубликовано'
     )
+    reply = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name='Ответ организации'
+    )
 
     class Meta:
         verbose_name = 'Отзыв'

@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from api.service import validate_inn_by_api
+from api.service import has_organization_rights, validate_inn_by_api
 from config.constants import NAME_PATTERN, WASTENAME_PATTERN
 from news.models import OrganizationNews
 from points.models import PickUpPoint, PointWasteTypes, SubmissionHistory
@@ -131,7 +131,6 @@ class OrganizationSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'id',
             'user',
-            'inn',
         )
         model = Organization
 
@@ -348,7 +347,7 @@ class SubmissionHistorySerializer(
     )
 
     point_name = serializers.SerializerMethodField()
-
+    has_review = serializers.SerializerMethodField()
     waste_type_name = serializers.SerializerMethodField()
 
     class Meta:
@@ -363,13 +362,23 @@ class SubmissionHistorySerializer(
             'waste_type_name',
             'weight',
             'total_price',
-            'created_at'
+            'created_at',
+            'has_review',
         )
 
         read_only_fields = (
             'user',
             'created_at'
         )
+
+    def get_has_review(self, obj):
+
+        user = self.context['request'].user
+
+        return Review.objects.filter(
+            user=user,
+            point=obj.point
+        ).exists()
 
     def get_point_name(self, obj):
 
@@ -388,11 +397,29 @@ class SubmissionHistorySerializer(
 
 class ReviewSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
+    point_name = serializers.CharField(
+        source='point.adress',
+        read_only=True
+    )
 
     class Meta:
         model = Review
-        fields = ('id', 'user', 'point', 'rating', 'text', 'created_at')
-        read_only_fields = ('id', 'user', 'created_at', 'is_published')
+        fields = (
+            'id',
+            'user',
+            'point',
+            'point_name',
+            'rating',
+            'text',
+            'reply',
+            'created_at',
+        )
+
+        read_only_fields = (
+            'id',
+            'user',
+            'created_at',
+        )
 
     def validate(self, data):
         if self.context['request'].method == 'POST':
@@ -403,3 +430,37 @@ class ReviewSerializer(serializers.ModelSerializer):
                     'Вы уже оставляли отзыв на эту точку приема.'
                 )
         return data
+
+    def update(self, instance, validated_data):
+
+        user = self.context['request'].user
+
+        if instance.user == user:
+
+            if instance.reply:
+                raise serializers.ValidationError(
+                    'После ответа организации отзыв нельзя изменять'
+                )
+            validated_data.pop('reply', None)
+
+        elif has_organization_rights(
+            user,
+            instance.point.organization_id
+        ):
+
+            validated_data = {
+                'reply': validated_data.get(
+                    'reply',
+                    instance.reply
+                )
+            }
+
+        else:
+            raise serializers.ValidationError(
+                'Нет прав'
+            )
+
+        return super().update(
+            instance,
+            validated_data
+        )

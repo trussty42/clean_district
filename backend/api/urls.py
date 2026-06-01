@@ -21,7 +21,7 @@ router_v1.register(
     basename='history'
 )
 router_v1.register(
-    r'points/(?P<point_id>\d+)/reviews',
+    'reviews',
     views.ReviewViewSet,
     basename='point-reviews'
 )

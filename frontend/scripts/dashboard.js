@@ -379,15 +379,32 @@ function renderHistory(historyData) {
     const tbody = document.getElementById('historyTableBody');
     if (!tbody) return;
 
-    tbody.innerHTML = historyData.map(row => `
+    tbody.innerHTML = historyData.map((row, index) => `
         <tr>
             <td>${formatDate(row.created_at)}</td>
             <td>${row.point_name || '-'}</td>
             <td>${row.waste_type_name || '-'}</td>
             <td>${row.weight} кг</td>
             <td>${row.total_price} ₽</td>
-            <td><span class="status-badge completed">Проверено</span></td>
-            <td>-</td>
+            <td>
+                <span class="status-badge completed">
+                    Проверено
+                </span>
+            </td>
+            <td>
+                ${
+                    row.has_review
+                    ? '<span class="status-badge completed">Отзыв оставлен</span>'
+                    : `
+                        <button
+                            class="btn-small edit"
+                            onclick="openReviewForm(${index})"
+                        >
+                            Оставить отзыв
+                        </button>
+                    `
+                }
+            </td>
         </tr>
     `).join('');
 }
@@ -405,7 +422,9 @@ window.openReviewForm = function(index) {
         <div class="modal-content review-modal">
             <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
             <h3 style="margin: 0 0 8px 0; font-weight: 600;">Отзыв для "${row.point_name}"</h3>
-            <p style="color:#666;font-size:14px;margin-bottom:20px;">Сдача от ${row.date}</p>
+            <p style="color:#666;font-size:14px;margin-bottom:20px;">
+                Сдача от ${new Date(row.created_at).toLocaleString('ru-RU')}
+            </p>
             
             <div class="review-stars" id="reviewStars">
                 <span data-value="1">&#9733;</span>
@@ -429,6 +448,7 @@ window.openReviewForm = function(index) {
         
         star.addEventListener('click', () => {
             selectedRating = parseInt(star.dataset.value);
+            modal.dataset.rating = selectedRating;
             modal.querySelectorAll('#reviewStars span').forEach(s => {
                 s.style.color = parseInt(s.dataset.value) <= selectedRating ? '#FFD700' : '#ddd';
             });
@@ -440,22 +460,99 @@ window.openReviewForm = function(index) {
     });
 };
 
-window.submitReview = function(index) {
-    const text = document.getElementById('reviewText')?.value.trim();
+window.submitReview = async function(index) {
+
+    const row = historyData[index];
+
+    const text =
+        document.getElementById(
+            'reviewText'
+        )?.value.trim();
+
     if (!text) {
-        toasts.warning('Пожалуйста, напишите текст отзыва.', {
-            title: 'Пустой отзыв',
-            duration: 3000
-        });
+
+        toasts.warning(
+            'Напишите отзыв'
+        );
+
         return;
     }
-    
-    document.querySelector('.modal-overlay')?.remove();
 
-    toasts.success('Спасибо! Ваш отзыв помогает другим пользователям.', {
-        title: 'Отзыв отправлен',
-        duration: 4000
-    });
+    const modal =
+        document.querySelector(
+            '.review-modal'
+        )?.closest('.modal-overlay');
+
+    const rating =
+        Number(modal?.dataset.rating);
+    
+    if (!rating) {
+
+        toasts.warning(
+            'Поставьте оценку'
+        );
+
+        return;
+    }
+
+    const token =
+        localStorage.getItem(
+            'ck_access_token'
+        );
+
+    try {
+
+        const response = await fetch(
+            '/api/v1/reviews/',
+            {
+                method: 'POST',
+
+                headers: {
+                    'Authorization':
+                        `Bearer ${token}`,
+                    'Content-Type':
+                        'application/json'
+                },
+
+                body: JSON.stringify({
+                    point: row.point,
+                    rating: rating,
+                    text: text
+                })
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                Object.values(data)
+                    .flat()
+                    .join('\n')
+            );
+        }
+
+        document
+            .querySelector('.modal-overlay')
+            ?.remove();
+
+        toasts.success(
+            'Отзыв отправлен на модерацию'
+        );
+
+        await loadHistory();
+
+    } catch (err) {
+
+        console.error(err);
+
+        toasts.error(
+            err.message
+        );
+    }
 };
 
 function initAchievements() {

@@ -481,9 +481,10 @@
 
 /* Отзыв */
 .feedback-card {
-    border: 1px solid #eee;
+    border: 1px solid #d4d4d4;
     border-radius: 16px;
     padding: 20px;
+    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.2);
 }
 
 .feedback-header {
@@ -493,26 +494,39 @@
     margin-bottom: 12px;
 }
 
+.feedback-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
 .feedback-user {
     font-weight: 600;
-    font-size: 15px;
+    font-size: 18px;
 }
 
 .feedback-date {
-    font-size: 13px;
+    font-size: 15px;
+    color: #888;
+}
+
+.feedback-point {
+    font-size: 15px;
     color: #888;
 }
 
 .feedback-rating {
     color: #FFD700;
-    margin-bottom: 8px;
+    font-size: 32px;
+    flex-shrink: 0;
 }
 
 .feedback-text {
-    font-size: 14px;
+    font-size: 18px;
     color: #000000;
-    margin-bottom: 16px;
+    margin-bottom: 4px;
     line-height: 1.5;
+    word-break: break-all;
 }
 
 .feedback-reply {
@@ -530,6 +544,9 @@
     font-size: 14px;
     resize: vertical;
     min-height: 60px;
+    border: 1px solid #0000004b;
+    border-radius: 10px;
+    padding: 10px;
 }
 
 .feedback-reply-actions {

@@ -1298,54 +1298,145 @@ window.deletePoint = async function(id) {
     }
 };
 
-// ===== ОТЗЫВЫ =====
-const feedbackData = [
-    { id: 1, userName: 'annakir', rating: 5, text: 'Очень удобный пункт!', date: '20.04.2026', reply: null },
-    { id: 2, userName: 'pupupu', rating: 4, text: 'Хорошо, но очередь.', date: '08.04.2026', reply: null }
-];
+let feedbackData = [];
 
-function initFeedback() { renderFeedback(); }
+async function initFeedback() {
+
+    const response = await fetch(
+        `/api/v1/reviews/?organization=${orgData.id}`
+    );
+
+    feedbackData = await response.json();
+
+    renderFeedback();
+}
 
 function renderFeedback() {
     const list = document.getElementById('feedbackList');
     if (!list) return;
     
-    list.innerHTML = feedbackData.map(fb => `
-        <div class="feedback-card">
-            <div class="feedback-header">
-                <div>
-                    <span class="feedback-user">${fb.userName}</span>
-                    <div class="feedback-rating">${'★'.repeat(fb.rating)}${'☆'.repeat(5-fb.rating)}</div>
-                </div>
-                <span class="feedback-date">${fb.date}</span>
-            </div>
-            <p class="feedback-text">${fb.text}</p>
-            <div class="feedback-reply">
-                ${fb.reply 
-                    ? `<p><strong>Ваш ответ:</strong> ${fb.reply}</p>` 
-                    : `<textarea placeholder="Напишите ответ..."></textarea>
-                       <div class="feedback-reply-actions">
-                           <button class="btn-small edit" onclick="sendReply(${fb.id}, this)">Отправить</button>
-                       </div>`
-                }
-            </div>
-        </div>
-    `).join('');
-}
+        list.innerHTML = feedbackData.map(fb => `
+            <div class="feedback-card">
 
-window.sendReply = function(feedbackId, btn) {
-    const textarea = btn.closest('.feedback-reply')?.querySelector('textarea');
-    const reply = textarea?.value.trim();
+                <div class="feedback-header">
+
+                    <div class="feedback-info">
+
+                        <span class="feedback-user">
+                            ${fb.user}
+                        </span>
+
+                        <div class="feedback-date">
+                            ${new Date(fb.created_at).toLocaleString('ru-RU')}
+                        </div>
+
+                        <div class="feedback-point">
+                            ${fb.point_name}
+                        </div>
+
+                    </div>
+
+                    <span class="feedback-rating">
+                        ${'★'.repeat(fb.rating)}
+                    </span>
+
+                </div>
+
+                <div class="feedback-text">
+                    ${fb.text}
+                </div>
+                <div class="feedback-reply">
+                    ${fb.reply 
+                        ? `<p><strong>Ваш ответ:</strong> ${fb.reply}</p>` 
+                        : `<textarea placeholder="Напишите ответ..."></textarea>
+                        <div class="feedback-reply-actions">
+                            <button class="btn-small edit" onclick="sendReply(${fb.id}, this)">Отправить</button>
+                        </div>`
+                    }
+                </div>
+            </div>
+        `).join('');
+    }
+
+window.sendReply = async function(feedbackId, btn) {
+
+    const textarea =
+        btn.closest('.feedback-reply')
+           ?.querySelector('textarea');
+
+    const reply =
+        textarea?.value.trim();
+
     if (!reply) {
-        window.toasts?.warning('Напишите текст ответа', { duration: 2000 });
+
+        window.toasts?.warning(
+            'Напишите текст ответа',
+            { duration: 2000 }
+        );
+
         return;
     }
-    
-    const fb = feedbackData.find(f => f.id === feedbackId);
-    if (fb) {
-        fb.reply = reply;
+
+    const token =
+        localStorage.getItem(
+            'ck_access_token'
+        );
+
+    try {
+
+        const response = await fetch(
+            `/api/v1/reviews/${feedbackId}/`,
+            {
+                method: 'PATCH',
+
+                headers: {
+                    Authorization:
+                        `Bearer ${token}`,
+                    'Content-Type':
+                        'application/json'
+                },
+
+                body: JSON.stringify({
+                    reply: reply
+                })
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                'Ошибка сохранения'
+            );
+        }
+
+        const fb =
+            feedbackData.find(
+                f => f.id === feedbackId
+            );
+
+        if (fb) {
+            fb.reply = reply;
+        }
+
         renderFeedback();
-        window.toasts?.success('Ответ отправлен', { duration: 2000 });
+
+        window.toasts?.success(
+            'Ответ сохранён',
+            { duration: 2000 }
+        );
+
+    } catch (err) {
+
+        console.error(err);
+
+        window.toasts?.error(
+            err.message,
+            { duration: 3000 }
+        );
     }
 };
 
