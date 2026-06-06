@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Панель модератора</title>
+
+    
+    <link rel="stylesheet" href="styles/moderation.css">
+    <link rel="stylesheet" href="styles/dashboard.css">
+    
+
+    </head>
+    <body>
+
+    <div class="org-layout">
+
+    
+    <!-- БОКОВОЕ МЕНЮ -->
+    <aside class="org-sidebar">
+
+        <div class="sidebar-header">
+            <h2>Модерация</h2>
+        </div>
+
+        <nav class="org-nav">
+
+            <button
+                class="org-nav-item active"
+                data-tab="organizations"
+            >
+                Организации
+            </button>
+
+            <button
+                class="org-nav-item"
+                data-tab="reviews"
+            >
+                Отзывы
+            </button>
+
+            <button
+                class="org-nav-item"
+                data-tab="news"
+            >
+                Новости
+            </button>
+
+            <button
+                class="org-nav-item"
+                data-tab="logs"
+            >
+                История
+            </button>
+
+        </nav>
+
+    </aside>
+
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <main class="org-content">
+
+        <!-- ОРГАНИЗАЦИИ -->
+        <section
+            id="organizations-tab"
+            class="moderation-tab active"
+        >
+
+            <div class="section-header">
+                <h2>Организации на модерации</h2>
+            </div>
+
+            <div
+                id="organizationsList"
+                class="moderation-grid"
+            >
+            </div>
+
+        </section>
+
+        <!-- ОТЗЫВЫ -->
+        <section
+            id="reviews-tab"
+            class="moderation-tab"
+        >
+
+            <div class="section-header">
+                <h2>Отзывы на модерации</h2>
+            </div>
+
+            <div
+                id="reviewsList"
+                class="moderation-grid"
+            >
+            </div>
+
+        </section>
+
+        <!-- НОВОСТИ -->
+        <section
+            id="news-tab"
+            class="moderation-tab"
+        >
+
+            <div class="section-header">
+                <h2>Новости на модерации</h2>
+            </div>
+
+            <div
+                id="newsList"
+                class="moderation-grid"
+            >
+            </div>
+
+        </section>
+
+        <!-- ИСТОРИЯ -->
+        <section
+            id="logs-tab"
+            class="moderation-tab"
+        >
+
+            <div class="section-header">
+                <h2>История модерации</h2>
+            </div>
+
+            <div
+                id="logsList"
+                class="moderation-grid"
+            >
+            </div>
+
+        </section>
+
+    </main>
+    
+
+    </div>
+
+    <!-- МОДАЛКА ОТКЛОНЕНИЯ -->
+
+    <div
+        id="rejectModal"
+        class="modal"
+    >
+
+    
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h3>Причина отклонения</h3>
+
+            <button
+                class="close-btn"
+                onclick="closeRejectModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <textarea
+            id="rejectReason"
+            placeholder="Укажите причину..."
+        ></textarea>
+
+        <div class="modal-actions">
+
+            <button
+                class="btn-secondary"
+                onclick="closeRejectModal()"
+            >
+                Отмена
+            </button>
+
+            <button
+                class="btn-danger"
+                onclick="confirmReject()"
+            >
+                Отклонить
+            </button>
+
+        </div>
+
+    </div>
+    
+
+    </div>
+
+    <script src="scripts/toast.js"></script>
+
+    <script src="scripts/moderation.js"></script>
+
+    </body>
+</html>

@@ -1,0 +1,347 @@
+/* ===== ОСНОВНОЙ ЛЕЙАУТ ===== */
+
+.org-layout {
+    display: flex;
+    min-height: 100vh;
+    background: #f5f7f5;
+}
+
+.org-sidebar {
+    width: 280px;
+    background: #fff;
+    border-right: 1px solid #e5e7eb;
+    padding: 24px;
+    flex-shrink: 0;
+}
+
+.org-content {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+}
+
+/* ===== SIDEBAR ===== */
+
+.sidebar-header {
+    margin-bottom: 32px;
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.org-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.org-nav-item {
+    border: none;
+    background: transparent;
+    padding: 14px 16px;
+    border-radius: 12px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all .2s ease;
+}
+
+.org-nav-item:hover {
+    background: #f1f5f1;
+}
+
+.org-nav-item.active {
+    background: #4CAF50;
+    color: white;
+}
+
+/* ===== ВКЛАДКИ ===== */
+
+.moderation-tab {
+    display: none;
+}
+
+.moderation-tab.active {
+    display: block;
+}
+
+.section-header {
+    margin-bottom: 24px;
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+/* ===== СЕТКА ===== */
+
+.moderation-grid {
+    display: grid;
+    gap: 20px;
+}
+
+/* ===== КАРТОЧКИ ===== */
+
+.moderation-card {
+    background: white;
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 2px 20px rgba(0,0,0,.08);
+    border: 1px solid #ececec;
+}
+
+.moderation-card h3 {
+    margin: 0 0 12px;
+    font-size: 20px;
+}
+
+.moderation-card p {
+    margin: 6px 0;
+    line-height: 1.5;
+}
+
+.moderation-meta {
+    color: #777;
+    font-size: 14px;
+}
+
+/* ===== БЛОК ОТЗЫВА ===== */
+
+.feedback-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.feedback-user {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.feedback-rating {
+    color: #FFD700;
+    font-size: 22px;
+}
+
+.feedback-text {
+    margin-top: 12px;
+    line-height: 1.6;
+}
+
+.feedback-date {
+    font-size: 13px;
+    color: #888;
+}
+
+.feedback-point {
+    font-size: 14px;
+    color: #666;
+}
+
+/* ===== КНОПКИ ===== */
+
+.moderation-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-approve,
+.btn-reject,
+.btn-secondary,
+.btn-danger {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.btn-approve {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-approve:hover {
+    opacity: .9;
+}
+
+.btn-reject,
+.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-reject:hover,
+.btn-danger:hover {
+    opacity: .9;
+}
+
+.btn-secondary {
+    background: #f1f1f1;
+}
+
+.btn-secondary:hover {
+    background: #e4e4e4;
+}
+
+/* ===== СТАТУСЫ ===== */
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.status-pending {
+    background: #fff7d6;
+    color: #a16207;
+}
+
+.status-approved {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* ===== МОДАЛКА ===== */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 520px;
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h3 {
+    margin: 0;
+}
+
+.close-btn {
+    border: none;
+    background: transparent;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+#rejectReason {
+    width: 100%;
+    min-height: 140px;
+    border: 1px solid #d6d6d6;
+    border-radius: 14px;
+    padding: 14px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+/* ===== ЛОГИ ===== */
+
+.log-card {
+    background: white;
+    border-radius: 16px;
+    padding: 18px;
+    border-left: 4px solid #4CAF50;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+
+.log-date {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 6px;
+}
+
+.log-action {
+    font-weight: 600;
+}
+
+.log-reason {
+    margin-top: 10px;
+    padding: 10px;
+    background: #fafafa;
+    border-radius: 10px;
+    color: #555;
+}
+
+/* ===== МОБИЛЬНАЯ ВЕРСИЯ ===== */
+
+@media (max-width: 900px) {
+
+    .org-layout {
+        flex-direction: column;
+    }
+
+    .org-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .org-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .org-content {
+        padding: 20px;
+    }
+
+    .feedback-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .moderation-actions {
+        flex-direction: column;
+    }
+
+    .btn-approve,
+    .btn-reject,
+    .btn-secondary,
+    .btn-danger {
+        width: 100%;
+    }
+}

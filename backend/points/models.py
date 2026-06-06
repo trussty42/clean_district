@@ -50,7 +50,7 @@ class PickUpPoint(models.Model):
     @property
     def average_rating(self):
         return self.review.filter(
-            is_published=True
+            status='approved'
         ).aggregate(models.Avg('rating'))['rating__avg']
 
 

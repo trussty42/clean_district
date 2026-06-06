@@ -26,6 +26,16 @@ router_v1.register(
     basename='point-reviews'
 )
 router_v1.register('news', views.NewsViewSet, basename='news')
+router_v1.register(
+    'moderation',
+    views.ModerationViewSet,
+    basename='moderation'
+)
+router_v1.register(
+    'employees',
+    views.EmployeeViewSet,
+    basename='employees'
+)
 
 authentication_urls = [
     path('register/', views.user_registration, name='user_registration'),

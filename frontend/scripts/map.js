@@ -694,7 +694,38 @@ window.closeBalloon = function() {
 
 let currentPanelPoint = null; //Глобальная переменная для хранения открытого пункта
 
-window.openSidePanel = function(id) {
+window.openSidePanel = async function(id) {
+    const viewed =
+        JSON.parse(
+            sessionStorage.getItem(
+                'viewedPoints'
+            ) || '[]'
+        );
+
+    if (!viewed.includes(id)) {
+
+        try {
+
+            await fetch(
+                `/api/v1/points/${id}/view/`,
+                {
+                    method: 'POST'
+                }
+            );
+
+            viewed.push(id);
+
+            sessionStorage.setItem(
+                'viewedPoints',
+                JSON.stringify(viewed)
+            );
+
+        } catch (error) {
+
+            console.error(error);
+        }
+    }
+
     const point = allPoints.find(p => p.id === id);
     if (!point) return;
     

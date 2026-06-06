@@ -2,8 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
-from config.constants import (ORGANIZATION_CHOICES, ORGANIZATION_STATUSES,
-                              ROLE_CHOICES)
+from config.constants import ORGANIZATION_CHOICES, ROLE_CHOICES
 
 
 class User(AbstractUser):
@@ -100,7 +99,11 @@ class Organization(models.Model):
     )
     status = models.CharField(
         max_length=20,
-        choices=ORGANIZATION_STATUSES,
+        choices=[
+            ('pending', 'На модерации'),
+            ('approved', 'Одобрена'),
+            ('rejected', 'Отклонёна')
+        ],
         default='pending',
         verbose_name='Статус'
     )

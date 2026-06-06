@@ -14,8 +14,15 @@ class Review(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True, verbose_name='Создано'
     )
-    is_published = models.BooleanField(
-        default=False, verbose_name='Опубликовано'
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', 'На модерации'),
+            ('approved', 'Одобрен'),
+            ('rejected', 'Отклонён')
+        ],
+        default='pending',
+        verbose_name='Статус'
     )
     reply = models.TextField(
         null=True,
@@ -31,25 +38,61 @@ class Review(models.Model):
 
 
 class ModerationLog(models.Model):
-    content_type = models.CharField(max_length=50)
-    object_id = models.CharField(max_length=50)
+
+    CONTENT_TYPES = (
+        ('organization', 'Организация'),
+        ('review', 'Отзыв'),
+        ('news', 'Новость'),
+    )
+
+    ACTIONS = (
+        ('approve', 'Одобрить'),
+        ('reject', 'Отклонить'),
+    )
+
+    content_type = models.CharField(
+        max_length=20,
+        choices=CONTENT_TYPES,
+        verbose_name='Тип объекта'
+    )
+
+    object_id = models.CharField(
+        max_length=50,
+        verbose_name='ID объекта'
+    )
+
     moderator = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
-        limit_choices_to={'is_staff': True}
+        limit_choices_to={'is_staff': True},
+        verbose_name='Модератор'
     )
+
     action = models.CharField(
         max_length=20,
-        choices=[
-            ('approve', 'Одобрить'),
-            ('reject', 'Отклонить'),
-            ('block', 'Заблокировать')
-        ]
+        choices=ACTIONS,
+        verbose_name='Действие'
     )
-    reason = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+
+    reason = models.TextField(
+        blank=True,
+        verbose_name='Причина'
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата решения'
+    )
 
     class Meta:
         verbose_name = 'Лог модерации'
         verbose_name_plural = 'Логи модерации'
+        ordering = ('-created_at',)
+
+    def __str__(self):
+        return (
+            f'{self.content_type} '
+            f'#{self.object_id} '
+            f'({self.action})'
+        )

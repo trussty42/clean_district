@@ -132,10 +132,9 @@ function initOrgHeader() {
     const logoEl = document.getElementById('orgLogoPreview');
     
     if (nameEl) nameEl.textContent = orgData.name || '';
-    
     if (badgeEl) {
-        const statusMap = { pending: 'На проверке', verified: 'Проверена', rejected: 'Отклонена' };
-        badgeEl.textContent = statusMap[orgData.status] || orgData.status;
+        const statusMap = { pending: 'На модерации', active: 'Активна', rejected: 'Отклонена' };
+        badgeEl.textContent = statusMap[orgData.status];
         badgeEl.className = `org-status-badge ${orgData.status}`;
     }
     
@@ -704,9 +703,9 @@ document.getElementById('editNewsForm')
         ).value
     );
 
-    formData.append(
-        'is_published',
-        'true'
+    formDataToSend.append(
+        'status',
+        'pending'
     );
 
     const image =
@@ -1472,8 +1471,8 @@ function initNews() {
             formData.get('newsText')
         );
         formDataToSend.append(
-            'is_published',
-            'true'
+            'status',
+            'pending'
         );
 
         const imageFile =
@@ -1587,92 +1586,160 @@ function renderNews() {
     `).join('');
 }
 
-function initAnalytics() {
-    // 🔹 Заглушка данных (замени на fetch к API)
-    const data = {
-        views: 1247,
-        submissions: 89,
-        avgRating: 4.7,
-        // Твой точный список типов отходов
-        weightByType: {
-            'Пластик': 342,
-            'Стекло': 89,
-            'Электроника': 45,
-            'Металл': 203,
-            'Бумага и картон': 156,
-            'Мебель и крупногабарит': 34,
-            'Текстиль': 28,
-            'Батарейки': 12,
-            'Строительный мусор': 56,
-            'Дерево': 41,
-            'Автошины': 18,
-            'Лампочки': 9
-        },
-        ratingDistribution: { 5: 52, 4: 23, 3: 8, 2: 4, 1: 2 }
-    };
+async function initAnalytics() {
+    const token =
+        localStorage.getItem(
+            'ck_access_token'
+        );
+
+    const response = await fetch(
+        `/api/v1/organizations/${orgData.id}/analytics/`,
+        {
+            headers: {
+                Authorization:
+                    `Bearer ${token}`
+            }
+        }
+    );
+
+    const data =
+        await response.json();
+
+    console.log(data);
 
     // Основные метрики
     document.getElementById('totalViews').textContent = data.views.toLocaleString('ru-RU');
     document.getElementById('totalSubmissions').textContent = data.submissions.toLocaleString('ru-RU');
-    document.getElementById('avgRating').textContent = data.avgRating.toFixed(1);
+    document.getElementById('avgRating').textContent = Number(data.avg_rating || 0).toFixed(1);
 
     // Сданный вес (сортировка по убыванию + расчёт процентов для баров)
     const weightChart = document.getElementById('weightChart');
-    const sortedWeight = Object.entries(data.weightByType).sort((a, b) => b[1] - a[1]);
-    const maxWeight = sortedWeight.length > 0 ? sortedWeight[0][1] : 1;
+    const sortedWeight = (
+        data.weight_stats || []
+    )
+    .sort(
+        (a, b) =>
+            Number(b.total_weight)
+            - Number(a.total_weight)
+    );
+    const maxWeight =
+        sortedWeight.length
+            ? Number(
+                sortedWeight[0].total_weight
+            )
+            : 1;
 
-    weightChart.innerHTML = sortedWeight.map(([type, weight]) => {
-        const percent = (weight / maxWeight) * 100;
-        return `
-            <div class="weight-row">
-                <span class="weight-label">${type}</span>
-                <div class="weight-bar-wrapper">
-                    <div class="weight-bar" style="width: ${percent}%"></div>
+    weightChart.innerHTML =
+        sortedWeight.map(item => {
+
+            const weight =
+                Number(item.total_weight);
+
+            const percent =
+                (weight / maxWeight) * 100;
+
+            return `
+                <div class="weight-row">
+                    <span class="weight-label">
+                        ${getWasteLabel(
+                            item.waste_type__waste_type
+                        )}
+                    </span>
+
+                    <div class="weight-bar-wrapper">
+                        <div
+                            class="weight-bar"
+                            style="width:${percent}%"
+                        ></div>
+                    </div>
+
+                    <span class="weight-value">
+                        ${weight} кг
+                    </span>
                 </div>
-                <span class="weight-value">${weight} кг</span>
-            </div>
-        `;
-    }).join('');
+            `;
+        }).join('');
 
-    // 3️Распределение оценок (от 5 до 1)
+    // Распределение оценок
     const ratingDist = document.getElementById('ratingDistribution');
-    const ratingLabels = { 
-        5: '<span style="color:#FFD700">★★★★★</span>', 
-        4: '<span style="color:#FFD700">★★★★</span>', 
+
+    const ratingLabels = {
+        5: '<span style="color:#FFD700">★★★★★</span>',
+        4: '<span style="color:#FFD700">★★★★</span>',
         3: '<span style="color:#FFD700">★★★</span>',
         2: '<span style="color:#FFD700">★★</span>',
         1: '<span style="color:#FFD700">★</span>'
     };
-    const totalRatings = Object.values(data.ratingDistribution).reduce((a, b) => a + b, 0) || 1;
 
-    ratingDist.innerHTML = [5, 4, 3, 2, 1].map(star => {
-        const count = data.ratingDistribution[star] || 0;
-        const percent = (count / totalRatings) * 100;
-        return `
-            <div class="rating-row">
-                <span class="rating-label">${ratingLabels[star]}</span>
-                <div class="rating-bar-wrapper">
-                    <div class="rating-bar" style="width: ${percent}%"></div>
+    const ratingsMap = {};
+
+    (data.rating_stats || []).forEach(item => {
+        ratingsMap[item.rating] = item.count;
+    });
+
+    const totalRatings =
+        Object.values(ratingsMap)
+            .reduce((a, b) => a + b, 0) || 1;
+
+    ratingDist.innerHTML = [5, 4, 3, 2, 1]
+        .map(star => {
+
+            const count =
+                ratingsMap[star] || 0;
+
+            const percent =
+                (count / totalRatings) * 100;
+
+            return `
+                <div class="rating-row">
+
+                    <span class="rating-label">
+                        ${ratingLabels[star]}
+                    </span>
+
+                    <div class="rating-bar-wrapper">
+
+                        <div
+                            class="rating-bar"
+                            style="width:${percent}%"
+                        ></div>
+
+                    </div>
+
+                    <span class="rating-count">
+                        ${count}
+                    </span>
+
                 </div>
-                <span class="rating-count">${count}</span>
-            </div>
-        `;
-    }).join('');
+            `;
+        })
+        .join('');
 
 }
 
 // ===== СОТРУДНИКИ =====
-const employeesData = [
-    { id: 1, name: 'Иван Петров', email: 'ivan@eco-ural.ru', role: 'owner' },
-    { id: 2, name: 'Мария Сидорова', email: 'maria@eco-ural.ru', role: 'manager' },
-    { id: 3, name: 'Алексей Козлов', email: 'alex@eco-ural.ru', role: 'member' }
-];
-const currentUser = { email: 'ivan@eco-ural.ru', role: 'owner' };
+let employeesData = [];
 
-function initEmployees() {
+async function initEmployees() {
+    const token =
+        localStorage.getItem(
+            'ck_access_token'
+        );
+
+    const response = await fetch(
+        `/api/v1/employees/?organization=${orgData.id}`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    employeesData = await response.json();
+
     renderEmployees();
     
-    if (currentUser.role === 'owner') {
+    if (orgData.my_role === 'leader') {
         document.getElementById('inviteEmployeeBtn')?.style.setProperty('display', 'inline-flex');
     }
     
@@ -1684,12 +1751,61 @@ function initEmployees() {
         document.getElementById('inviteModal')?.classList.remove('active');
     });
     
-    document.getElementById('inviteForm')?.addEventListener('submit', (e) => {
+    document.getElementById('inviteForm')
+    ?.addEventListener('submit', async (e) => {
+
         e.preventDefault();
+
+        const token =
+            localStorage.getItem(
+                'ck_access_token'
+            );
+
         const email = e.target.email.value;
-        window.toasts?.success(`Приглашение отправлено на ${email}`, { duration: 4000 });
-        document.getElementById('inviteModal')?.classList.remove('active');
+
+        const response = await fetch(
+            '/api/v1/employees/invite/',
+            {
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+
+                body: JSON.stringify({
+                    email,
+                    organization: orgData.id,
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+
+            window.toasts?.error(
+                data.detail ||
+                data.email ||
+                'Ошибка'
+            );
+
+            return;
+        }
+
+        employeesData.push(data);
+
+        renderEmployees();
+
+        document
+            .getElementById('inviteModal')
+            ?.classList.remove('active');
+
         e.target.reset();
+
+        window.toasts?.success(
+            'Сотрудник добавлен'
+        );
     });
 }
 
@@ -1697,21 +1813,21 @@ function renderEmployees() {
     const list = document.getElementById('employeesList');
     if (!list) return;
     
-    const roleMap = { owner: 'Владелец', manager: 'Менеджер', member: 'Участник' };
-    const isOwner = currentUser.role === 'owner';
+    const roleMap = { leader: 'Владелец', employee: 'Работник' };
+    const isOwner = orgData.my_role === 'leader';
     
     list.innerHTML = employeesData.map(emp => `
         <div class="employee-card">
             <div class="employee-info">
-                <div class="employee-avatar">${emp.name.charAt(0)}</div>
+                <div class="employee-avatar">${emp.username.charAt(0)}</div>
                 <div>
-                    <div class="employee-name">${emp.name}</div>
+                    <div class="employee-name">${emp.username}</div>
                     <div class="employee-email">${emp.email}</div>
                 </div>
             </div>
             <div style="display:flex;align-items:center;gap:12px;">
-                <span class="employee-role">${roleMap[emp.role] || emp.role}</span>
-                ${isOwner && emp.role !== 'owner' ? `
+                <span class="employee-role">${roleMap[emp.role_in_organization] || emp.role_in_organization}</span>
+                ${isOwner && emp.role_in_organization !== 'leader' ? `
                     <button class="btn-small delete" onclick="removeEmployee(${emp.id})">Удалить</button>
                 ` : ''}
             </div>
@@ -1719,16 +1835,33 @@ function renderEmployees() {
     `).join('');
 }
 
-window.removeEmployee = function(id) {
-    if (confirm('Удалить сотрудника?')) {
-        const idx = employeesData.findIndex(e => e.id === id);
-        if (idx > -1) {
-            employeesData.splice(idx, 1);
-            renderEmployees();
-            window.toasts?.info('Сотрудник удалён', { duration: 2000 });
+window.removeEmployee = async function(id) {
+
+    const token =
+        localStorage.getItem(
+            'ck_access_token'
+        );
+
+    const response = await fetch(
+        `/api/v1/employees/${id}/`,
+        {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
         }
+    );
+
+    if (!response.ok) {
+        return;
     }
-};
+
+    employeesData = employeesData.filter(
+        e => e.id !== id
+    );
+
+    renderEmployees();
+}
 
 // ===== ВЫХОД =====
 function initOrgLogout() {

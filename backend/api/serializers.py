@@ -8,8 +8,8 @@ from api.service import has_organization_rights, validate_inn_by_api
 from config.constants import NAME_PATTERN, WASTENAME_PATTERN
 from news.models import OrganizationNews
 from points.models import PickUpPoint, PointWasteTypes, SubmissionHistory
-from reviews.models import Review
-from users.models import Organization, User
+from reviews.models import ModerationLog, Review
+from users.models import Employee, Organization, User
 
 
 def get_user(username, email):
@@ -113,6 +113,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 class OrganizationSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
+    my_role = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
@@ -126,6 +127,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             'website_url',
             'logo',
             'socials',
+            'my_role'
         )
 
         read_only_fields = (
@@ -182,6 +184,22 @@ class OrganizationSerializer(serializers.ModelSerializer):
             )
 
         return value
+
+    def get_my_role(self, obj):
+        request = self.context.get('request')
+
+        if not request or request.user.is_anonymous:
+            return None
+
+        employee = Employee.objects.filter(
+            user=request.user,
+            organization=obj
+        ).first()
+
+        return (
+            employee.role_in_organization
+            if employee else None
+        )
 
 
 class PointWasteTypeSerializer(serializers.ModelSerializer):
@@ -286,7 +304,7 @@ class PointSerializer(serializers.ModelSerializer):
     def get_reviews(self, obj):
 
         reviews = obj.review.filter(
-            is_published=True
+            status='approved'
         ).order_by('-created_at')[:5]
 
         return ReviewSerializer(
@@ -326,7 +344,7 @@ class OrganizationNewsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrganizationNews
-        fields = ('id', 'title', 'text', 'is_published', 'created_at', 'image')
+        fields = ('id', 'title', 'text', 'status', 'created_at', 'image')
         read_only_fields = ('created_at',)
 
 
@@ -464,3 +482,49 @@ class ReviewSerializer(serializers.ModelSerializer):
             instance,
             validated_data
         )
+
+
+class ModerationLogSerializer(serializers.ModelSerializer):
+
+    moderator = serializers.StringRelatedField()
+
+    class Meta:
+        model = ModerationLog
+
+        fields = (
+            'id',
+            'content_type',
+            'object_id',
+            'action',
+            'reason',
+            'moderator',
+            'created_at'
+        )
+
+
+class EmployeeSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        source='user.username',
+        read_only=True
+    )
+    email = serializers.EmailField(
+        source='user.email',
+        read_only=True
+    )
+
+    class Meta:
+        model = Employee
+        fields = (
+            'id',
+            'user',
+            'username',
+            'email',
+            'organization',
+            'role_in_organization',
+        )
+
+
+class EmployeeCreateSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    organization = serializers.IntegerField()
+    role_in_organization = serializers.CharField()

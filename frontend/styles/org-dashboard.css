@@ -76,6 +76,11 @@
     color: #609432;
 }
 
+.org-status-badge.active {
+    background: #e8f5e3;
+    color: #609432;
+}
+
 .org-status-badge.rejected {
     background: #ffebee;
     color: #c62828;
@@ -1179,4 +1184,66 @@ input[readonly] {
     color:#609432;
     font-weight: 600;
     font-size: 12px;
+}
+
+/* ===== СОТРУДНИКИ ===== */
+
+.employee-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 20px;
+    border-radius: 20px;
+
+    background: #fff;
+    border: 1px solid #e5e5e5;
+
+    box-shadow: 0 4px 20px rgba(0,0,0,.08);
+}
+
+.employee-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.employee-avatar {
+    width: 48px;
+    height: 48px;
+
+    border-radius: 50%;
+
+    background: #609432;
+    color: #fff;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.employee-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+}
+
+.employee-email {
+    font-size: 14px;
+    color: #777;
+}
+
+.employee-role {
+    padding: 6px 12px;
+
+    border-radius: 12px;
+
+    background: #f0f7ec;
+    color: #609432;
+
+    font-size: 13px;
+    font-weight: 600;
 }
