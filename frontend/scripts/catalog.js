@@ -40,17 +40,11 @@ async function loadCatalog() {
         catalogData = await response.json();
 
         filteredData = [...catalogData];
-        console.log(catalogData);
         renderCatalog();
 
         initPagination();
 
     } catch (error) {
-
-        console.error(
-            'Ошибка загрузки каталога',
-            error
-        );
     }
 }
 
@@ -230,7 +224,6 @@ function initModal() {
     const modal = document.getElementById('productModal');
     
     if (!modal) {
-        console.error('Модальное окно #productModal не найдено в HTML!');
         return;
     }
     
@@ -238,17 +231,14 @@ function initModal() {
     const modalCloseBtn = document.querySelector('.modal-close-btn');
     
     window.showItemDetails = function(id) {
-        console.log('Открытие товара с id:', id);
         const item = catalogData.find(i => i.id === id);
         if (!item) {
-            console.warn('Товар с id=' + id + ' не найден');
             return;
         }
         openModal(item, modal);
     };
 
     function openModal(item, modalEl) {
-        console.log('Открытие модалки для:', item.name);
         
         const img = document.getElementById('modalImg');
         if (img) {

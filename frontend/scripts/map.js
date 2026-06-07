@@ -10,10 +10,8 @@ function getUserLocation() {
                     position.coords.latitude,
                     position.coords.longitude
                 ];
-                console.log('Координаты пользователя:', window.userCoordinates);
             },
             (error) => {
-                console.warn('Не удалось получить координаты:', error);
             }
         );
     }
@@ -87,24 +85,13 @@ async function loadPoints() {
 
         filteredPoints = [...allPoints];
 
-        console.log(
-            'Точки загружены:',
-            allPoints
-        );
-
     } catch (error) {
-
-        console.error(
-            'Ошибка загрузки точек:',
-            error
-        );
     }
 }
 
 // ===== ИНИЦИАЛИЗАЦИЯ =====
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof ymaps === 'undefined') {
-        console.error('Яндекс.Карты API не загружен');
         return;
     }
     
@@ -128,7 +115,6 @@ function initMap() {
     try {
         const mapElement = document.getElementById('map');
         if (!mapElement) {
-            console.error('Контейнер #map не найден');
             return;
         }
         
@@ -161,10 +147,7 @@ function initMap() {
             });
         }
         
-        console.log('Карта загружена');
-        
     } catch (error) {
-        console.error('Ошибка карты:', error);
     }
 }
 
@@ -397,7 +380,6 @@ async function applyFilters() {
         );
 
         const data = await response.json();
-        console.log(data);
         allPoints = data.map(point => ({
 
             id: point.id,
@@ -452,11 +434,6 @@ async function applyFilters() {
             ?.classList.remove('open');
 
     } catch (error) {
-
-        console.error(
-            'Ошибка фильтрации:',
-            error
-        );
     }
 }
 
@@ -671,8 +648,6 @@ function resetFilters() {
         document
             .getElementById('filtersSidebar')
             ?.classList.remove('open');
-
-        console.log('Сброс завершён');
     });
 }
 
@@ -721,8 +696,6 @@ window.openSidePanel = async function(id) {
             );
 
         } catch (error) {
-
-            console.error(error);
         }
     }
 

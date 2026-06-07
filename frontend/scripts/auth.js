@@ -12,14 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
 function initAuthButton() {
     const btn = document.getElementById('authButton');
     if (!btn) {
-        console.warn('⚠️ Кнопка #authButton не найдена на этой странице');
         return;
     }
 
     const rawUser = localStorage.getItem('ck_currentUser');
     const savedAvatar = localStorage.getItem('ck_userAvatar');
-
-    console.log('initAuthButton вызван. User:', rawUser, 'Avatar:', savedAvatar);
 
     if (rawUser) {
         try {
@@ -40,16 +37,13 @@ function initAuthButton() {
                 img.alt = 'Аватар';
                 btn.appendChild(img);
                 btn.classList.add('is-logged-in');
-                console.log('✅ Показываем аватар');
             } else {
                 btn.classList.remove('is-logged-in');
-                console.log('👤 Показываем иконку (нет аватара)');
             }
             
             btn.onclick = () => window.location.href = 'dashboard.html';
             
         } catch (e) {
-            console.error('Ошибка:', e);
             btn.innerHTML = 'Вход';
             btn.classList.remove('is-logged-in');
             btn.onclick = () => window.location.href = 'profile.html';
@@ -58,7 +52,6 @@ function initAuthButton() {
         btn.innerHTML = 'Вход';
         btn.classList.remove('is-logged-in');
         btn.onclick = () => window.location.href = 'profile.html';
-        console.log('🔘 Показываем "Вход"');
     }
 }
 
@@ -104,7 +97,6 @@ function initLoginForm() {
                 alert(data.error || 'Неверный логин или пароль');
             }
         } catch (error) {
-            console.error('Ошибка входа:', error);
             alert('Сервер недоступен');
         }
     });
@@ -126,13 +118,10 @@ async function fetchUserData() {
 
         if (response.ok) {
             const user = await response.json();
-            console.log('Ответ профиля:', response);
             localStorage.setItem('ck_currentUser', JSON.stringify(user));
             initAuthButton();
         }
     } catch (error) {
-        console.error('Ошибка загрузки профиля:', error);
-        console.log('Ответ профиля:', response);
     }
 }
 
@@ -251,7 +240,6 @@ function initRegisterForm() {
 
             } else {
 
-                console.error(data);
 
                 alert(
                     data.detail ||
@@ -260,8 +248,6 @@ function initRegisterForm() {
             }
 
         } catch (error) {
-
-            console.error('Ошибка регистрации:', error);
 
             alert('Сервер недоступен');
         }

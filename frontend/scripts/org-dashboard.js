@@ -53,11 +53,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         orgData = await response.json();
-        console.log(orgData);
 
     } catch (err) {
-
-        console.error(err);
 
         window.toasts?.error('Не удалось загрузить организацию');
 
@@ -97,8 +94,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     newsData = Array.isArray(newsResult)
         ? newsResult
         : newsResult.results || [];
-
-    console.log(newsData);
 
     // 7. Запускаем инициализацию интерфейса
     initOrgHeader();      // Обновляем шапку (название, статус, логотип)
@@ -226,7 +221,6 @@ function initOrgProfile() {
             };
 
             try {
-                console.log(payload);
                 const response = await fetch(
                     `/api/v1/organizations/${orgData.id}/`,
                     {
@@ -245,7 +239,6 @@ function initOrgProfile() {
 
                 if (!response.ok) {
 
-                    console.error(data);
 
                     const firstError =
                         Object.values(data)[0]?.[0] ||
@@ -266,7 +259,6 @@ function initOrgProfile() {
 
             } catch (err) {
 
-                console.error(err);
 
                 window.toasts?.error(
                     err.message || 'Не удалось сохранить изменения',
@@ -418,7 +410,6 @@ function initPoints() {
         };
 
         try {
-            console.log(payload)
 
             const response = await fetch(
                 '/api/v1/points/',
@@ -462,8 +453,6 @@ function initPoints() {
             );
 
         } catch (err) {
-
-            console.error(err);
 
             window.toasts?.error(
                 err.message,
@@ -741,8 +730,6 @@ document.getElementById('editNewsForm')
 
         if (!response.ok) {
 
-            console.error(data);
-
             throw new Error(
                 Object.values(data)[0]?.[0]
                 || 'Ошибка'
@@ -768,8 +755,6 @@ document.getElementById('editNewsForm')
         );
 
     } catch (err) {
-
-        console.error(err);
 
         window.toasts?.error(
             err.message,
@@ -828,8 +813,6 @@ document.getElementById('deleteNewsBtn')
         );
 
     } catch (err) {
-
-        console.error(err);
 
         window.toasts?.error(
             err.message,
@@ -976,12 +959,6 @@ function addPriceRowToEditList(data = {}) {
 
                 const token = localStorage.getItem(
                     'ck_access_token'
-                );
-                console.log(
-                    'UPDATE',
-                    wasteId,
-                    waste_name,
-                    price
                 );
                 await fetch(
                     `/api/v1/waste-types/${wasteId}/`,
@@ -1177,12 +1154,6 @@ function initEditPointModal() {
 
                 // UPDATE
                 if (wasteId) {
-                    console.log(
-                        'UPDATE',
-                        wasteId,
-                        waste_name,
-                        price
-                    );
                     response = await fetch(
                         `/api/v1/waste-types/${wasteId}/`,
                         {
@@ -1228,8 +1199,6 @@ function initEditPointModal() {
 
                 if (!response.ok) {
 
-                    console.error(responseData);
-
                     const field =
                         Object.keys(responseData)[0];
 
@@ -1249,8 +1218,6 @@ function initEditPointModal() {
             );
 
         } catch (err) {
-
-            console.error(err);
 
             window.toasts?.error(
                 err.message,
@@ -1297,8 +1264,6 @@ window.deletePoint = async function(id) {
         );
 
     } catch (err) {
-
-        console.error(err);
 
         window.toasts?.error(
             err.message,
@@ -1440,8 +1405,6 @@ window.sendReply = async function(feedbackId, btn) {
 
     } catch (err) {
 
-        console.error(err);
-
         window.toasts?.error(
             err.message,
             { duration: 3000 }
@@ -1517,8 +1480,6 @@ function initNews() {
 
             if (!response.ok) {
 
-                console.error(data);
-
                 const field =
                     Object.keys(data)[0];
 
@@ -1543,8 +1504,6 @@ function initNews() {
             );
 
         } catch (err) {
-
-            console.error(err);
 
             window.toasts?.error(
                 err.message,
@@ -1615,7 +1574,6 @@ async function initAnalytics() {
     const data =
         await response.json();
 
-    console.log(data);
 
     // Основные метрики
     document.getElementById('totalViews').textContent = data.views.toLocaleString('ru-RU');
@@ -1932,7 +1890,6 @@ function initAddressSuggestions(inputId, suggestionsId) {
                 );
 
             } catch (err) {
-                console.error('DaData error:', err);
             }
         }, 300);
     });

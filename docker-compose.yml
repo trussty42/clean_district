@@ -34,7 +34,7 @@ services:
     volumes:
     # Удалить строку снизу потом
       - ./backend:/app
-      - static_volume:/app/staticfiles
+      - static_volume:/app/collected_static
       - media_volume:/app/media
 
 
@@ -64,5 +64,5 @@ services:
       - frontend
 
     volumes:
-      - static_volume:/staticfiles
+      - static_volume:/collected_static
       - media_volume:/media

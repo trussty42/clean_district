@@ -191,7 +191,6 @@ function initProfileForm() {
             toasts.success('Профиль обновлён');
 
         } catch (err) {
-            console.error(err);
             toasts.error('Ошибка при обновлении');
         }
     });
@@ -367,11 +366,6 @@ async function loadHistory() {
         initAchievements();
 
     } catch (err) {
-
-        console.error(
-            'Ошибка истории:',
-            err
-        );
     }
 }
 
@@ -547,8 +541,6 @@ window.submitReview = async function(index) {
 
     } catch (err) {
 
-        console.error(err);
-
         toasts.error(
             err.message
         );
@@ -592,11 +584,9 @@ function updateAchievements() {
                 });
             } else {
                 // Если старый формат — очищаем localStorage
-                console.warn('Старый формат достижений, сбрасываем');
                 localStorage.removeItem('ck_achievements');
             }
         } catch (e) {
-            console.error('Ошибка чтения достижений:', e);
             localStorage.removeItem('ck_achievements');
         }
     }
@@ -772,8 +762,6 @@ function initOrgModalOnce() {
     const closeBtn = document.getElementById('closeOrgModal');
     const createForm = document.getElementById('createOrgForm');
 
-    console.log('🔍 initOrgModalOnce:', { createBtn, modal, closeBtn, createForm });
-
     if (createBtn) {
         createBtn.addEventListener('click', () => {
             const owned = organizationsData.filter(o => o.role === 'leader').length;
@@ -845,8 +833,6 @@ async function loadPoints() {
 
     } catch (err) {
 
-        console.error(err);
-
         toasts.error('Не удалось загрузить пункты');
     }
 }
@@ -905,8 +891,6 @@ function initSubmissionModal() {
                 });
 
             } catch (err) {
-
-                console.error(err);
 
                 toasts.error(
                     'Не удалось загрузить отходы'
@@ -1002,11 +986,6 @@ function initSubmissionModal() {
 
             } catch {
 
-                console.error(
-                    'HTML ошибка backend:',
-                    text
-                );
-
                 toasts.error(
                     'Ошибка сервера'
                 );
@@ -1015,8 +994,6 @@ function initSubmissionModal() {
             }
 
             if (!response.ok) {
-
-                console.error(result);
 
                 toasts.error(
                     JSON.stringify(result)
@@ -1034,8 +1011,6 @@ function initSubmissionModal() {
             await loadHistory();
 
         } catch (err) {
-
-            console.error(err);
 
             toasts.error('Сервер недоступен');
         }
@@ -1062,7 +1037,6 @@ async function createOrganization(formData) {
         if (!response.ok) {
 
             const err = await response.json();
-            console.log(err)
             const message =
                 err.detail ||
                 Object.values(err).flat().join('\n')
@@ -1079,7 +1053,6 @@ async function createOrganization(formData) {
         return true;
 
     } catch (err) {
-        console.error(err);
         toasts.error('Сервер недоступен');
     }
 }

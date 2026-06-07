@@ -89,7 +89,6 @@ async function loadNews() {
     try {
         const response = await fetch('/api/v1/news/');
         const data = await response.json();
-        console.log(data);
 
         // если DRF pagination
         const newsList = Array.isArray(data)
@@ -98,7 +97,6 @@ async function loadNews() {
 
         renderNews(newsList);
     } catch (error) {
-        console.error('Ошибка загрузки новостей:', error);
     }
 }
 
