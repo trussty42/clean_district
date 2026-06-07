@@ -4,7 +4,8 @@ from decimal import Decimal
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from api.service import has_organization_rights, validate_inn_by_api
+from api.service import (has_organization_rights, normalize_waste_name,
+                         validate_inn_by_api)
 from config.constants import NAME_PATTERN, WASTENAME_PATTERN
 from news.models import OrganizationNews
 from points.models import PickUpPoint, PointWasteTypes, SubmissionHistory
@@ -226,11 +227,32 @@ class PointWasteTypeSerializer(serializers.ModelSerializer):
         }
 
     def validate_waste_name(self, value):
-        if not re.fullmatch(WASTENAME_PATTERN, value):
+
+        if not re.fullmatch(
+            WASTENAME_PATTERN,
+            value
+        ):
             raise serializers.ValidationError(
                 'Неверное название товара'
             )
-        return value
+
+        normalized = normalize_waste_name(
+            value
+        )
+
+        existing = (
+            PointWasteTypes.objects
+            .only('waste_name')
+        )
+
+        for waste in existing:
+
+            if (normalize_waste_name(
+                waste.waste_name
+            ) == normalized):
+                return waste.waste_name
+
+        return value.strip()
 
     def validate_price(self, value):
         if value <= 0:
@@ -487,6 +509,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 class ModerationLogSerializer(serializers.ModelSerializer):
 
     moderator = serializers.StringRelatedField()
+    object_display = serializers.SerializerMethodField()
+    content_type_display = serializers.SerializerMethodField()
+    action_display = serializers.SerializerMethodField()
 
     class Meta:
         model = ModerationLog
@@ -494,12 +519,61 @@ class ModerationLogSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'content_type',
+            'content_type_display',
+            'object_title',
+            'object_display',
             'object_id',
             'action',
+            'action_display',
             'reason',
             'moderator',
             'created_at'
         )
+
+    def get_content_type_display(self, obj):
+        labels = {
+            'organization': 'Организация',
+            'review': 'Отзыв',
+            'news': 'Новость',
+        }
+
+        return labels.get(obj.content_type, obj.content_type)
+
+    def get_action_display(self, obj):
+        labels = {
+            'approve': 'Одобрено',
+            'reject': 'Отклонено',
+        }
+
+        return labels.get(obj.action, obj.action)
+
+    def get_object_display(self, obj):
+        if obj.object_title:
+            return obj.object_title
+
+        model_map = {
+            'organization': (Organization, 'name'),
+            'news': (OrganizationNews, 'title'),
+            'review': (Review, 'text'),
+        }
+
+        model_info = model_map.get(obj.content_type)
+
+        if not model_info:
+            return f'Объект #{obj.object_id}'
+
+        model, field_name = model_info
+        item = model.objects.filter(pk=obj.object_id).first()
+
+        if not item:
+            return f'Объект #{obj.object_id}'
+
+        value = getattr(item, field_name, '') or ''
+
+        if obj.content_type == 'review' and len(value) > 120:
+            return f'{value[:120]}...'
+
+        return value or f'Объект #{obj.object_id}'
 
 
 class EmployeeSerializer(serializers.ModelSerializer):

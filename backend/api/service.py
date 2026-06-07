@@ -1,4 +1,5 @@
 import os
+import re
 
 from dadata import Dadata
 from dotenv import load_dotenv
@@ -29,7 +30,7 @@ def has_organization_rights(user, organization):
 def create_moderation_log(
     *,
     content_type: str,
-    object_id,
+    obj,
     moderator,
     action: str,
     reason: str = ''
@@ -38,9 +39,21 @@ def create_moderation_log(
     Создание записи в журнале модерации.
     """
 
+    object_title = ''
+
+    if content_type == 'organization':
+        object_title = obj.name
+
+    elif content_type == 'news':
+        object_title = obj.title
+
+    elif content_type == 'review':
+        object_title = obj.text[:120]
+
     return ModerationLog.objects.create(
         content_type=content_type,
-        object_id=str(object_id),
+        object_id=str(obj.pk),
+        object_title=object_title,
         moderator=moderator,
         action=action,
         reason=reason
@@ -68,7 +81,7 @@ def approve_object(
 
     create_moderation_log(
         content_type=content_type,
-        object_id=obj.pk,
+        obj=obj,
         moderator=moderator,
         action='approve'
     )
@@ -95,7 +108,7 @@ def reject_object(
 
     create_moderation_log(
         content_type=content_type,
-        object_id=obj.pk,
+        obj=obj,
         moderator=moderator,
         action='reject',
         reason=reason
@@ -118,10 +131,19 @@ def block_object(
 
     create_moderation_log(
         content_type=content_type,
-        object_id=obj.pk,
+        obj=obj,
         moderator=moderator,
         action='block',
         reason=reason
     )
 
     return obj
+
+
+def normalize_waste_name(name: str) -> str:
+    name = name.strip().lower()
+
+    name = re.sub(r'[-_]+', ' ', name)
+    name = re.sub(r'\s+', ' ', name)
+
+    return name

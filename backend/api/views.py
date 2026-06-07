@@ -258,11 +258,41 @@ class PointViewSet(ModelViewSet):
 
 
 @api_view(['GET'])
-def waste_types_catalog(request):
-    catalog = PointWasteTypes.objects.values('waste_name').annotate(
-        average_price=Avg('price')
+def waste_catalog(request):
+
+    catalog = (
+        PointWasteTypes.objects
+        .filter(
+            is_actual_price=True,
+            price__isnull=False
+        )
+        .values(
+            'waste_name',
+            'waste_type'
+        )
+        .annotate(
+            average_price=Avg('price'),
+            points_count=Count(
+                'point',
+                distinct=True
+            )
+        )
+        .order_by('waste_name')
     )
-    return Response(catalog)
+
+    result = []
+
+    for index, item in enumerate(catalog):
+
+        result.append({
+            'id': index + 1,
+            'name': item['waste_name'],
+            'type': item['waste_type'],
+            'price': float(item['average_price']),
+            'points_count': item['points_count']
+        })
+
+    return Response(result)
 
 
 class WasteTypesViewSet(ModelViewSet):
@@ -273,9 +303,21 @@ class WasteTypesViewSet(ModelViewSet):
     filterset_class = WasteTypesFilter
 
     def get_queryset(self):
-        return PointWasteTypes.objects.select_related(
+
+        queryset = PointWasteTypes.objects.select_related(
             'point__organization'
-        ).all()
+        )
+
+        point_id = self.request.query_params.get(
+            'point'
+        )
+
+        if point_id:
+            queryset = queryset.filter(
+                point_id=point_id
+            )
+
+        return queryset
 
     def perform_create(self, serializer):
         point = serializer.validated_data.get('point')
@@ -301,12 +343,20 @@ class WasteTypesViewSet(ModelViewSet):
 
 
 class NewsViewSet(ModelViewSet):
-    queryset = OrganizationNews.objects.filter(
-        status='approved'
-    ).order_by('-created_at')
     serializer_class = OrganizationNewsSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = NewsPagination
+
+    def get_queryset(self):
+        queryset = OrganizationNews.objects.all()
+
+        if not (
+            self.request.user.is_authenticated
+            and self.request.user.is_staff
+        ):
+            queryset = queryset.filter(status='approved')
+
+        return queryset.order_by('-created_at')
 
 
 class SubmissionHistoryViewSet(ModelViewSet):
@@ -340,7 +390,13 @@ class ReviewViewSet(ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        queryset = Review.objects.filter(status='approved')
+        queryset = Review.objects.all()
+
+        if not (
+            self.request.user.is_authenticated
+            and self.request.user.is_staff
+        ):
+            queryset = queryset.filter(status='approved')
 
         point_id = self.request.query_params.get('point')
 
@@ -424,6 +480,34 @@ class ModerationViewSet(ViewSet):
 
         return Response({
             'status': 'approved'
+        })
+
+    @action(
+        detail=True,
+        methods=['post']
+    )
+    def reject_organization(
+        self,
+        request,
+        pk=None
+    ):
+
+        organization = Organization.objects.get(
+            pk=pk
+        )
+
+        reject_object(
+            obj=organization,
+            moderator=request.user,
+            content_type='organization',
+            reason=request.data.get(
+                'reason',
+                ''
+            )
+        )
+
+        return Response({
+            'status': 'rejected'
         })
 
     @action(

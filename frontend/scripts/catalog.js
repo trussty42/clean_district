@@ -1,110 +1,72 @@
-// Данные каталога
-const catalogData = [
-    { 
-        id: 1, 
-        name: "Книга", 
-        category: "Бумага и картон", 
-        type: "paper", 
-        price: 34, 
-        image: "book.svg",
-        preparation: [
-            "Удалить скрепки и скобы",
-            "Снять пластиковую обложку",
-            "Сложить в стопку"
-        ],
-        notAccepted: [
-            "Книги с плесенью",
-            "Мокрые и грязные книги",
-            "Книги с восковыми страницами"
-        ]
-    },
-    { 
-        id: 2, 
-        name: "Пластиковые стаканы", 
-        category: "Пластик", 
-        type: "plastic", 
-        price: 5, 
-        image: "noimg.svg",
-        preparation: [
-            "Сполоснуть от остатков напитка",
-            "Снять крышку и трубочку",
-            "Максимально сжать"
-        ],
-        notAccepted: [
-            "Стаканы с пищевыми отходами",
-            "Стаканы из-под молочных продуктов (не промытые)",
-            "Стаканы с металлическим напылением"
-        ]
-    },
-    { 
-        id: 7, 
-        name: "Пластиковая бутылка", 
-        category: "Пластик", 
-        type: "plastic", 
-        price: 22, 
-        image: "bottle.jpg",
-        preparation: [
-            "Сполоснуть",
-            "Максимально сжать",
-            "Крышку можно сдать отдельно"
-        ],
-        notAccepted: [
-            "Бутылки из-под масла и бытовой химии",
-            "Бутылки с остатками жидкости",
-            "Бутылки с этикетками из плёнки ПВХ"
-        ]
-    },
-    { 
-        id: 10, 
-        name: "Стеклянная бутылка", 
-        category: "Стекло", 
-        type: "glass", 
-        price: 15, 
-        image: "noimg.svg",
-        preparation: [
-            "Сполоснуть",
-            "Снять этикетку (по возможности)",
-            "Не разбивать"
-        ],
-        notAccepted: [
-            "Битое стекло",
-            "Зеркала",
-            "Хрусталь",
-            "Керамику и фаянс"
-        ]
-    },
-    { 
-        id: 11, 
-        name: "Алюминиевая банка", 
-        category: "Металл", 
-        type: "metal", 
-        price: 45, 
-        image: "noimg.svg",
-        preparation: [
-            "Сполоснуть",
-            "Максимально сжать",
-            "Удалить пластиковую крышку"
-        ],
-        notAccepted: [
-            "Банки из-под краски и химии",
-            "Аэрозольные баллончики",
-            "Банки с острыми краями"
-        ]
-    }
-];
-
+let catalogData = [];
 let filteredData = [...catalogData];
 let currentPage = 1;
 const itemsPerPage = 12;
+const wasteTypes = {
 
-document.addEventListener('DOMContentLoaded', () => {
-    renderCatalog();
-    initFilters();
-    initSearch();
-    initSort();
-    initPagination();
-    initModal();
-});
+    plastic: 'Пластик',
+
+    glass: 'Стекло',
+
+    electronic: 'Электроника',
+
+    metal: 'Металл',
+
+    paper: 'Бумага и картон',
+
+    furniture: 'Мебель',
+
+    textile: 'Текстиль',
+
+    battery: 'Батарейки',
+
+    construction: 'Строительный мусор',
+
+    tree: 'Дерево',
+
+    tire: 'Автошины',
+
+    bulb: 'Лампочки'
+};
+
+async function loadCatalog() {
+
+    try {
+
+        const response = await fetch(
+            '/api/v1/waste-catalog/'
+        );
+
+        catalogData = await response.json();
+
+        filteredData = [...catalogData];
+        console.log(catalogData);
+        renderCatalog();
+
+        initPagination();
+
+    } catch (error) {
+
+        console.error(
+            'Ошибка загрузки каталога',
+            error
+        );
+    }
+}
+
+document.addEventListener(
+    'DOMContentLoaded',
+    async () => {
+
+        initFilters();
+        initSearch();
+        initSort();
+        initModal();
+
+        await loadCatalog();
+
+    }
+);
 
 function renderCatalog() {
     const grid = document.getElementById('catalogGrid');
@@ -125,8 +87,15 @@ function renderCatalog() {
                         onerror="this.src='./images/noimg.svg'">
                 </div>
                 <h3 class="item-name">${item.name}</h3>
-                <p class="item-category">${item.category}</p>
-                <div class="item-price">${item.price} руб/кг</div>
+                <p class="item-category">${wasteTypes[item.type]}</p>
+                <div class="item-price">
+                    ${item.price.toFixed(2)} руб/кг
+                </div>
+
+                <div class="item-points">
+                    ${item.points_count}
+                    пунктов приёма
+                </div>
                 <div class="item-arrow">
                     <img src="./images/arrow.svg" alt="Подробнее" onerror="this.style.display='none'"/>
                 </div>
@@ -200,9 +169,11 @@ function initSearch() {
         clearTimeout(timeout);
         timeout = setTimeout(() => {
             const query = e.target.value.toLowerCase().trim();
-            filteredData = catalogData.filter(item => 
+            filteredData = catalogData.filter(item =>
                 item.name.toLowerCase().includes(query) ||
-                item.category.toLowerCase().includes(query)
+                wasteTypes[item.type]
+                    ?.toLowerCase()
+                    .includes(query)
             );
             currentPage = 1;
             renderCatalog();
@@ -281,14 +252,14 @@ function initModal() {
         
         const img = document.getElementById('modalImg');
         if (img) {
-            img.src = `./images/catalog/${item.image}`;
+            img.src = './images/noimg.svg';
             img.alt = item.name;
         }
         
         const elements = {
             'modalTitle': item.name,
             'modalCategory': `${item.category}`,
-            'modalType': `Тип: ${item.type}`,
+            'modalType': `Тип: ${wasteTypes[item.type]}`,
             'modalPrice': `${item.price} руб/кг`
         };
         

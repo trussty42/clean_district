@@ -46,7 +46,7 @@ authentication_urls = [
 v1_urlpatterns = [
     path('', include(router_v1.urls)),
     path('users/', include(authentication_urls)),
-    path('waste-catalog/', views.waste_types_catalog, name='waste-catalog'),
+    path('waste-catalog/', views.waste_catalog, name='waste-catalog'),
 ]
 
 urlpatterns = [

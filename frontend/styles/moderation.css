@@ -1,64 +1,178 @@
-/* ===== ОСНОВНОЙ ЛЕЙАУТ ===== */
+/* ===== MODERATION DASHBOARD ===== */
 
-.org-layout {
-    display: flex;
-    min-height: 100vh;
-    background: #f5f7f5;
+.moderation-main {
+    background: #ffffff;
+    padding: 40px 20px;
+    margin: 90px 0 0;
 }
 
-.org-sidebar {
-    width: 280px;
-    background: #fff;
-    border-right: 1px solid #e5e7eb;
+.moderation-container {
+    max-width: 1640px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+.moderation-sidebar {
+    position: sticky;
+    top: 100px;
+    height: calc(100vh - 180px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    background: #609432;
+    border-radius: 24px;
     padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.moderation-mini-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+    margin-bottom: 20px;
+}
+
+.moderation-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #609432;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
 }
 
-.org-content {
-    flex: 1;
-    padding: 32px;
-    overflow-y: auto;
+.moderation-profile-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-/* ===== SIDEBAR ===== */
-
-.sidebar-header {
-    margin-bottom: 32px;
-}
-
-.sidebar-header h2 {
-    margin: 0;
-    font-size: 24px;
+.moderation-role {
+    color: #ffffff;
+    font-size: 18px;
     font-weight: 700;
 }
 
-.org-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.moderation-status {
+    width: fit-content;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: #e8f5e3;
+    color: #426623;
+    font-size: 11px;
+    font-weight: 700;
 }
 
-.org-nav-item {
-    border: none;
-    background: transparent;
+.moderation-nav {
+    flex: 1;
+}
+
+.moderation-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.moderation-nav .org-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 4px;
     padding: 14px 16px;
     border-radius: 12px;
-    text-align: left;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    font-size: 15px;
-    transition: all .2s ease;
+    transition: background 0.2s, color 0.2s;
 }
 
-.org-nav-item:hover {
-    background: #f1f5f1;
+.moderation-nav .org-nav-item:hover {
+    background: #8eb968;
+    color: #ffffff;
 }
 
-.org-nav-item.active {
-    background: #4CAF50;
-    color: white;
+.moderation-nav .org-nav-item.active {
+    background: #ffffff;
+    color: #609432;
+    font-weight: 600;
 }
 
-/* ===== ВКЛАДКИ ===== */
+.moderation-nav .org-nav-item svg {
+    flex-shrink: 0;
+}
+
+.moderation-content {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 40px 60px;
+    min-height: 100vh;
+}
+
+.moderation-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.moderation-title {
+    margin: 0 0 8px;
+    color: #000000;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.moderation-hint,
+.section-header p {
+    margin: 0;
+    color: #666666;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.moderation-overview {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.overview-card {
+    min-height: 118px;
+    padding: 24px;
+    border: 1px solid #00000020;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+}
+
+.overview-card span {
+    color: #609432;
+    font-size: 34px;
+    line-height: 1;
+    font-weight: 800;
+}
+
+.overview-card small {
+    color: #666666;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: lowercase;
+}
 
 .moderation-tab {
     display: none;
@@ -66,90 +180,112 @@
 
 .moderation-tab.active {
     display: block;
+    animation: fadeIn 0.3s ease;
 }
 
-.section-header {
+.section-header,
+.logs-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
     margin-bottom: 24px;
 }
 
-.section-header h2 {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 700;
+.section-header h2,
+.logs-title {
+    margin: 0 0 8px;
+    color: #000000;
+    font-size: 24px;
+    font-weight: 600;
 }
-
-/* ===== СЕТКА ===== */
 
 .moderation-grid {
     display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 20px;
 }
 
-/* ===== КАРТОЧКИ ===== */
-
 .moderation-card {
-    background: white;
-    border-radius: 18px;
-    padding: 20px;
-    box-shadow: 0 2px 20px rgba(0,0,0,.08);
-    border: 1px solid #ececec;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 220px;
+    padding: 22px;
+    border: 1px solid #00000020;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.moderation-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .moderation-card h3 {
-    margin: 0 0 12px;
-    font-size: 20px;
+    margin: 0;
+    color: #000000;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.35;
 }
 
 .moderation-card p {
-    margin: 6px 0;
+    margin: 0;
+    color: #555555;
+    font-size: 14px;
     line-height: 1.5;
 }
 
-.moderation-meta {
-    color: #777;
-    font-size: 14px;
+.moderation-empty {
+    min-height: auto;
 }
 
-/* ===== БЛОК ОТЗЫВА ===== */
+.moderation-meta {
+    color: #888888;
+    font-size: 13px;
+}
 
 .feedback-header {
     display: flex;
     justify-content: space-between;
+    gap: 16px;
     align-items: flex-start;
-    margin-bottom: 12px;
 }
 
 .feedback-user {
-    font-weight: 600;
+    color: #000000;
     font-size: 16px;
+    font-weight: 700;
 }
 
 .feedback-rating {
-    color: #FFD700;
+    color: #ffd700;
     font-size: 22px;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 .feedback-text {
-    margin-top: 12px;
+    color: #333333;
+    font-size: 15px;
     line-height: 1.6;
+    word-break: break-word;
 }
 
-.feedback-date {
-    font-size: 13px;
-    color: #888;
-}
-
+.feedback-date,
 .feedback-point {
-    font-size: 14px;
-    color: #666;
+    color: #888888;
+    font-size: 13px;
 }
-
-/* ===== КНОПКИ ===== */
 
 .moderation-actions {
     display: flex;
     gap: 10px;
-    margin-top: 20px;
+    margin-top: auto;
+    padding-top: 10px;
 }
 
 .btn-approve,
@@ -157,118 +293,231 @@
 .btn-secondary,
 .btn-danger {
     border: none;
-    border-radius: 12px;
-    padding: 10px 18px;
+    border-radius: 50px;
+    padding: 11px 20px;
+    font-family: "TTDaysSans", Arial, sans-serif;
     font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
-    transition: all .2s ease;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
 }
 
 .btn-approve {
-    background: #4CAF50;
-    color: white;
+    background: #609432;
+    color: #ffffff;
 }
 
 .btn-approve:hover {
-    opacity: .9;
+    background: #426623;
 }
 
 .btn-reject,
 .btn-danger {
-    background: #ef4444;
-    color: white;
+    background: #ffebee;
+    color: #c62828;
 }
 
 .btn-reject:hover,
 .btn-danger:hover {
-    opacity: .9;
+    background: #c62828;
+    color: #ffffff;
 }
 
 .btn-secondary {
-    background: #f1f1f1;
+    background: #f0f0f0;
+    color: #333333;
 }
 
 .btn-secondary:hover {
-    background: #e4e4e4;
+    background: #e0e0e0;
 }
 
-/* ===== СТАТУСЫ ===== */
-
 .status-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
     padding: 6px 12px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
 }
 
 .status-pending {
-    background: #fff7d6;
-    color: #a16207;
+    background: #fff3e0;
+    color: #ef6c00;
 }
 
 .status-approved {
-    background: #dcfce7;
-    color: #166534;
+    background: #e8f5e3;
+    color: #609432;
 }
 
 .status-rejected {
-    background: #fee2e2;
-    color: #991b1b;
+    background: #ffebee;
+    color: #c62828;
 }
 
-/* ===== МОДАЛКА ===== */
+.logs-subtitle {
+    margin: 0;
+    color: #666666;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.logs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.log-item {
+    padding: 22px;
+    border: 1px solid #00000020;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.log-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.log-date {
+    color: #888888;
+    font-size: 13px;
+}
+
+.log-badge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.log-badge.approve {
+    background: #e8f5e3;
+    color: #609432;
+}
+
+.log-badge.reject {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.log-type {
+    margin-bottom: 8px;
+    color: #888888;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.log-title {
+    color: #000000;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.log-object {
+    margin-top: 6px;
+    color: #888888;
+    font-size: 13px;
+}
+
+.log-reason {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-left: 4px solid #c62828;
+    border-radius: 14px;
+    background: #fff7f7;
+    color: #555555;
+    font-size: 14px;
+    line-height: 1.5;
+}
 
 .modal {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.45);
-    display: none;
-    justify-content: center;
+    z-index: 3000;
+    display: flex;
     align-items: center;
-    z-index: 9999;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
 }
 
 .modal.active {
-    display: flex;
+    opacity: 1;
+    visibility: visible;
 }
 
-.modal-content {
-    width: 100%;
-    max-width: 520px;
-    background: white;
-    border-radius: 20px;
-    padding: 24px;
+.moderation-modal {
+    max-width: 560px;
+    padding: 28px;
+    border-radius: 24px;
+    background: #ffffff;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
     margin-bottom: 20px;
 }
 
 .modal-header h3 {
     margin: 0;
+    color: #000000;
+    font-size: 20px;
+    font-weight: 700;
 }
 
 .close-btn {
+    width: 36px;
+    height: 36px;
     border: none;
-    background: transparent;
-    font-size: 30px;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #609432;
+    font-size: 28px;
+    line-height: 1;
     cursor: pointer;
+}
+
+.close-btn:hover {
+    color: #333333;
 }
 
 #rejectReason {
     width: 100%;
-    min-height: 140px;
-    border: 1px solid #d6d6d6;
+    min-height: 150px;
+    padding: 14px 16px;
+    border: 1px solid #c5c5c5;
     border-radius: 14px;
-    padding: 14px;
-    resize: vertical;
-    font-family: inherit;
+    color: #333333;
+    font-family: "TTDaysSans", Arial, sans-serif;
     font-size: 14px;
-    box-sizing: border-box;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+#rejectReason:focus {
+    outline: none;
+    border-color: #609432;
 }
 
 .modal-actions {
@@ -278,63 +527,55 @@
     margin-top: 20px;
 }
 
-/* ===== ЛОГИ ===== */
+@media (max-width: 1100px) {
+    .moderation-container {
+        grid-template-columns: 1fr;
+    }
 
-.log-card {
-    background: white;
-    border-radius: 16px;
-    padding: 18px;
-    border-left: 4px solid #4CAF50;
-    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    .moderation-sidebar {
+        position: static;
+        height: auto;
+    }
+
+    .moderation-nav ul {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+
+    .moderation-nav .org-nav-item {
+        min-width: 130px;
+        margin-bottom: 0;
+    }
+
+    .moderation-overview {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
-.log-date {
-    font-size: 13px;
-    color: #888;
-    margin-bottom: 6px;
-}
+@media (max-width: 700px) {
+    .moderation-main {
+        padding: 24px 14px;
+    }
 
-.log-action {
-    font-weight: 600;
-}
+    .moderation-content {
+        padding: 24px 20px;
+    }
 
-.log-reason {
-    margin-top: 10px;
-    padding: 10px;
-    background: #fafafa;
-    border-radius: 10px;
-    color: #555;
-}
-
-/* ===== МОБИЛЬНАЯ ВЕРСИЯ ===== */
-
-@media (max-width: 900px) {
-
-    .org-layout {
+    .moderation-page-header,
+    .section-header,
+    .logs-header {
         flex-direction: column;
     }
 
-    .org-sidebar {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid #e5e7eb;
+    .moderation-overview,
+    .moderation-grid {
+        grid-template-columns: 1fr;
     }
 
-    .org-nav {
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
-    .org-content {
-        padding: 20px;
-    }
-
-    .feedback-header {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .moderation-actions {
+    .moderation-actions,
+    .modal-actions {
         flex-direction: column;
     }
 
@@ -343,5 +584,11 @@
     .btn-secondary,
     .btn-danger {
         width: 100%;
+    }
+
+    .log-top,
+    .feedback-header {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }

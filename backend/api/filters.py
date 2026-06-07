@@ -6,13 +6,33 @@ from django.db.models import Q
 
 
 class WasteTypesFilter(filters.FilterSet):
-    waste_type = filters.AllValuesMultipleFilter(field_name='waste_type')
-    price_min = filters.NumberFilter(field_name='price', lookup_expr='gte')
-    price_max = filters.NumberFilter(field_name='price', lookup_expr='lte')
+
+    point = filters.NumberFilter(
+        field_name='point'
+    )
+
+    waste_type = filters.AllValuesMultipleFilter(
+        field_name='waste_type'
+    )
+
+    price_min = filters.NumberFilter(
+        field_name='price',
+        lookup_expr='gte'
+    )
+
+    price_max = filters.NumberFilter(
+        field_name='price',
+        lookup_expr='lte'
+    )
 
     class Meta:
         model = PointWasteTypes
-        fields = ['waste_type', 'price_min', 'price_max']
+        fields = (
+            'point',
+            'waste_type',
+            'price_min',
+            'price_max'
+        )
 
 
 class PickUpPointFilter(filters.FilterSet):

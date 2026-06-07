@@ -1,197 +1,245 @@
 <!DOCTYPE html>
-
 <html lang="ru">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Панель модератора</title>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Панель модератора - Чистый квартал</title>
+    <link rel="stylesheet" href="./fonts/fonts.css" />
+    <link rel="stylesheet" href="./styles/style.css" />
+    <link rel="stylesheet" href="./styles/dashboard.css" />
+    <link rel="stylesheet" href="./styles/moderation.css" />
+    <link rel="icon" href="./images/logo.svg" type="image/svg+xml">
+    <script src="./scripts/auth.js" defer></script>
+    <script src="./scripts/toast.js" defer></script>
+    <script src="./scripts/moderation.js" defer></script>
+    <script src="./scripts/check_auth.js"></script>
+    <script>
+        requireAuth();
+    </script>
 
-    
-    <link rel="stylesheet" href="styles/moderation.css">
-    <link rel="stylesheet" href="styles/dashboard.css">
-    
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a class="logo" href="index.html">
+                <img src="./images/logo.svg" alt="Логотип" class="logo__icon" />
+                <div class="logo__text">
+                    <span>чистый</span>
+                    <span>квартал</span>
+                </div>
+            </a>
 
-    </head>
-    <body>
+            <button class="header__burger" aria-label="Меню">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
 
-    <div class="org-layout">
+            <div class="header__nav-group">
+                <nav>
+                    <ul class="header__menu">
+                        <li class="header__menu-item">
+                            <a href="index.html" class="header__menu-link js-nav-link" data-page="index.html">Главная</a>
+                        </li>
+                        <li class="header__menu-item">
+                            <a href="map.html" class="header__menu-link js-nav-link" data-page="map.html">Карта</a>
+                        </li>
+                        <li class="header__menu-item">
+                            <a href="catalog.html" class="header__menu-link js-nav-link" data-page="catalog.html">Каталог</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
 
-    
-    <!-- БОКОВОЕ МЕНЮ -->
-    <aside class="org-sidebar">
-
-        <div class="sidebar-header">
-            <h2>Модерация</h2>
+            <div class="header__button">
+                <button class="header__button-login js-auth-btn" id="authButton">Вход</button>
+            </div>
         </div>
+    </header>
 
-        <nav class="org-nav">
+    <main class="moderation-main">
+        <div class="moderation-container">
+            <aside class="org-sidebar moderation-sidebar">
+                <div class="moderation-mini-profile">
+                    <div class="moderation-logo" aria-hidden="true">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12l2 2 4-5"></path>
+                            <path d="M21 12c-1 0-3-1-3-3s2-3 3-3c-3-2-6-1-8 1L5 15l-1 5 5-1 8-8c2-2 3-5 1-8"></path>
+                        </svg>
+                    </div>
+                    <div class="moderation-profile-text">
+                        <span class="moderation-role">Модератор</span>
+                        <span class="moderation-status">Проверка заявок</span>
+                    </div>
+                </div>
 
-            <button
-                class="org-nav-item active"
-                data-tab="organizations"
-            >
-                Организации
-            </button>
+                <nav class="org-nav moderation-nav" aria-label="Разделы модерации">
+                    <ul>
+                        <li class="org-nav-item active" data-tab="organizations">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"></path>
+                            </svg>
+                            <span>Организации</span>
+                        </li>
+                        <li class="org-nav-item" data-tab="reviews">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            <span>Отзывы</span>
+                        </li>
+                        <li class="org-nav-item" data-tab="news">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                            </svg>
+                            <span>Новости</span>
+                        </li>
+                        <li class="org-nav-item" data-tab="logs">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <span>История</span>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
 
-            <button
-                class="org-nav-item"
-                data-tab="reviews"
-            >
-                Отзывы
-            </button>
+            <section class="moderation-content">
+                <div class="moderation-page-header">
+                    <div>
+                        <h1 class="moderation-title">Панель модерации</h1>
+                        <p class="moderation-hint">Проверяйте новые организации, отзывы и новости перед публикацией.</p>
+                    </div>
+                </div>
 
-            <button
-                class="org-nav-item"
-                data-tab="news"
-            >
-                Новости
-            </button>
+                <div class="moderation-overview" aria-label="Сводка по модерации">
+                    <div class="overview-card">
+                        <span id="orgCount">0</span>
+                        <small>организаций</small>
+                    </div>
+                    <div class="overview-card">
+                        <span id="reviewCount">0</span>
+                        <small>отзывов</small>
+                    </div>
+                    <div class="overview-card">
+                        <span id="newsCount">0</span>
+                        <small>новостей</small>
+                    </div>
+                    <div class="overview-card">
+                        <span id="logsCount">0</span>
+                        <small>решений</small>
+                    </div>
+                </div>
 
-            <button
-                class="org-nav-item"
-                data-tab="logs"
-            >
-                История
-            </button>
+                <div class="moderation-tab active" id="organizations-tab">
+                    <div class="section-header">
+                        <div>
+                            <h2>Организации на проверке</h2>
+                            <p>Проверьте данные, ИНН и контакты перед подтверждением.</p>
+                        </div>
+                    </div>
+                    <div class="moderation-grid" id="organizationsList"></div>
+                </div>
 
-        </nav>
+                <div class="moderation-tab" id="reviews-tab">
+                    <div class="section-header">
+                        <div>
+                            <h2>Отзывы на проверке</h2>
+                            <p>Скрывайте спам и некорректные сообщения до публикации.</p>
+                        </div>
+                    </div>
+                    <div class="moderation-grid" id="reviewsList"></div>
+                </div>
 
-    </aside>
+                <div class="moderation-tab" id="news-tab">
+                    <div class="section-header">
+                        <div>
+                            <h2>Новости и акции</h2>
+                            <p>Проверьте текст новости и соответствие правилам площадки.</p>
+                        </div>
+                    </div>
+                    <div class="moderation-grid" id="newsList"></div>
+                </div>
 
-    <!-- ОСНОВНОЙ КОНТЕНТ -->
-    <main class="org-content">
-
-        <!-- ОРГАНИЗАЦИИ -->
-        <section
-            id="organizations-tab"
-            class="moderation-tab active"
-        >
-
-            <div class="section-header">
-                <h2>Организации на модерации</h2>
-            </div>
-
-            <div
-                id="organizationsList"
-                class="moderation-grid"
-            >
-            </div>
-
-        </section>
-
-        <!-- ОТЗЫВЫ -->
-        <section
-            id="reviews-tab"
-            class="moderation-tab"
-        >
-
-            <div class="section-header">
-                <h2>Отзывы на модерации</h2>
-            </div>
-
-            <div
-                id="reviewsList"
-                class="moderation-grid"
-            >
-            </div>
-
-        </section>
-
-        <!-- НОВОСТИ -->
-        <section
-            id="news-tab"
-            class="moderation-tab"
-        >
-
-            <div class="section-header">
-                <h2>Новости на модерации</h2>
-            </div>
-
-            <div
-                id="newsList"
-                class="moderation-grid"
-            >
-            </div>
-
-        </section>
-
-        <!-- ИСТОРИЯ -->
-        <section
-            id="logs-tab"
-            class="moderation-tab"
-        >
-
-            <div class="section-header">
-                <h2>История модерации</h2>
-            </div>
-
-            <div
-                id="logsList"
-                class="moderation-grid"
-            >
-            </div>
-
-        </section>
-
+                <div class="moderation-tab" id="logs-tab">
+                    <div class="logs-header">
+                        <div>
+                            <h2 class="logs-title">История решений</h2>
+                            <p class="logs-subtitle">Последние действия модераторов по всем типам заявок.</p>
+                        </div>
+                    </div>
+                    <div class="logs-list" id="logsList"></div>
+                </div>
+            </section>
+        </div>
     </main>
-    
 
-    </div>
+    <div id="rejectModal" class="modal" aria-hidden="true">
+        <div class="modal-content moderation-modal" role="dialog" aria-modal="true" aria-labelledby="rejectModalTitle">
+            <div class="modal-header">
+                <h3 id="rejectModalTitle">Причина отклонения</h3>
+                <button class="close-btn" type="button" onclick="closeRejectModal()" aria-label="Закрыть">&times;</button>
+            </div>
 
-    <!-- МОДАЛКА ОТКЛОНЕНИЯ -->
+            <textarea id="rejectReason" placeholder="Укажите причину, чтобы автор понял, что нужно исправить"></textarea>
 
-    <div
-        id="rejectModal"
-        class="modal"
-    >
-
-    
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h3>Причина отклонения</h3>
-
-            <button
-                class="close-btn"
-                onclick="closeRejectModal()"
-            >
-                ×
-            </button>
-
+            <div class="modal-actions">
+                <button class="btn-secondary" type="button" onclick="closeRejectModal()">Отмена</button>
+                <button class="btn-danger" type="button" onclick="confirmReject()">Отклонить</button>
+            </div>
         </div>
+    </div>
 
-        <textarea
-            id="rejectReason"
-            placeholder="Укажите причину..."
-        ></textarea>
+    <footer class="footer">
+        <div class="footer__container">
+            <div class="footer-top">
+                <div class="footer-column">
+                    <div class="logo">
+                        <img src="./images/logo.svg" alt="Логотип" class="logo__icon" />
+                        <div class="logo__text">
+                            <span>чистый</span>
+                            <span>квартал</span>
+                        </div>
+                    </div>
+                    <p class="footer-description">Платформа для утилизации и переработки отходов.</p>
+                </div>
+                <div class="footer-column">
+                    <h4 class="footer-heading">Навигация</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Главная</a></li>
+                        <li><a href="map.html">Карта</a></li>
+                        <li><a href="catalog.html">Каталог</a></li>
+                        <li><a href="dashboard.html">Личный кабинет</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4 class="footer-heading">Социальные сети</h4>
+                    <ul class="footer-contacts">
+                        <li>
+                            <a href="https://github.com/trussty42/chistiykvartal" class="social-link" title="GitHub">GitHub</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
 
-        <div class="modal-actions">
+            <div class="footer-divider"></div>
 
-            <button
-                class="btn-secondary"
-                onclick="closeRejectModal()"
-            >
-                Отмена
-            </button>
-
-            <button
-                class="btn-danger"
-                onclick="confirmReject()"
-            >
-                Отклонить
-            </button>
-
+            <div class="footer-bottom">
+                <div class="footer-copyright">
+                    <p>© 2026 Чистый квартал</p>
+                    <p class="university-info">
+                        ФГАОУ ВО «Уральский федеральный университет имени первого Президента России<br>Б. Н. Ельцина»
+                    </p>
+                </div>
+                <div class="footer-legal">
+                    <a href="#">Политика конфиденциальности</a>
+                    <a href="#">Пользовательское соглашение</a>
+                </div>
+            </div>
         </div>
-
-    </div>
-    
-
-    </div>
-
-    <script src="scripts/toast.js"></script>
-
-    <script src="scripts/moderation.js"></script>
-
-    </body>
+    </footer>
+</body>
 </html>

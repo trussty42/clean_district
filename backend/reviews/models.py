@@ -61,6 +61,12 @@ class ModerationLog(models.Model):
         verbose_name='ID объекта'
     )
 
+    object_title = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name='Название объекта'
+    )
+
     moderator = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,

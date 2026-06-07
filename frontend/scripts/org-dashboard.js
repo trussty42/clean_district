@@ -977,7 +977,12 @@ function addPriceRowToEditList(data = {}) {
                 const token = localStorage.getItem(
                     'ck_access_token'
                 );
-
+                console.log(
+                    'UPDATE',
+                    wasteId,
+                    waste_name,
+                    price
+                );
                 await fetch(
                     `/api/v1/waste-types/${wasteId}/`,
                     {
@@ -1172,7 +1177,12 @@ function initEditPointModal() {
 
                 // UPDATE
                 if (wasteId) {
-
+                    console.log(
+                        'UPDATE',
+                        wasteId,
+                        waste_name,
+                        price
+                    );
                     response = await fetch(
                         `/api/v1/waste-types/${wasteId}/`,
                         {
