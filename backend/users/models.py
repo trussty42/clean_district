@@ -2,8 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
-from config.constants import (ORGANIZATION_CHOICES, ORGANIZATION_STATUSES,
-                              ROLE_CHOICES)
+from config.constants import ORGANIZATION_CHOICES, ROLE_CHOICES
 
 
 class User(AbstractUser):
@@ -62,12 +61,29 @@ class Organization(models.Model):
         max_length=255, verbose_name='Название', unique=True
     )
     inn = models.CharField(max_length=12, verbose_name='ИНН', unique=True)
-    phone = PhoneNumberField(verbose_name='Номер телефона')
-    email = models.EmailField(verbose_name='Почта', unique=True, blank=True, null=True)
-    logo = models.ImageField(
-        upload_to='organizations/', verbose_name='Логотип'
+    phone = PhoneNumberField(
+        verbose_name='Номер телефона',
+        null=True,
+        blank=True
     )
-    website_url = models.URLField(verbose_name='Адрес сайта')
+    email = models.EmailField(
+        verbose_name='Почта', unique=True,
+        blank=True, null=True
+    )
+    socials = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name='Социальные сети'
+    )
+    logo = models.ImageField(
+        upload_to='organizations/', verbose_name='Логотип',
+        null=True, blank=True
+    )
+    website_url = models.URLField(
+        verbose_name='Адрес сайта',
+        blank=True,
+        null=True
+    )
     rating_score = models.DecimalField(
         max_digits=3,
         decimal_places=2,
@@ -83,7 +99,11 @@ class Organization(models.Model):
     )
     status = models.CharField(
         max_length=20,
-        choices=ORGANIZATION_STATUSES,
+        choices=[
+            ('pending', 'На модерации'),
+            ('approved', 'Одобрена'),
+            ('rejected', 'Отклонёна')
+        ],
         default='pending',
         verbose_name='Статус'
     )

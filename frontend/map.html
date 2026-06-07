@@ -78,18 +78,18 @@
                             <div class="filter-group">
                                 <h4>Типы отходов</h4>
                                 <div class="checkbox-list">
-                                    <label class="checkbox-item"><input type="checkbox" name="type"> Пластик</label>
-                                    <label class="checkbox-item"><input type="checkbox" name="type"> Стекло</label>
-                                    <label class="checkbox-item"><input type="checkbox" name="type"> Электроника</label>
-                                    <label class="checkbox-item"><input type="checkbox" name="type"> Металл</label>
-                                    <label class="checkbox-item"><input type="checkbox" name="type"> Бумага и картон</label>
-                                    <label class="checkbox-item"><input type="checkbox" name="type"> Мебель и крупногабарит</label>
-                                    <label class="checkbox-item"><input type="checkbox" name="type"> Текстиль</label>
-                                    <label class="checkbox-item"><input type="checkbox" name="type"> Батарейки</label>
-                                    <label class="checkbox-item"><input type="checkbox" name="type"> Строительный мусор</label>
-                                    <label class="checkbox-item"><input type="checkbox" name="type"> Дерево</label>
-                                    <label class="checkbox-item"><input type="checkbox" name="type"> Автошины</label>
-                                    <label class="checkbox-item"><input type="checkbox" name="type"> Лампочки</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type" value="plastic"> Пластик</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type" value="glass"> Стекло</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type" value="electronic"> Электроника</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type" value="metal"> Металл</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type" value="paper"> Бумага и картон</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type" value="furniture"> Мебель и крупногабарит</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type" value="textile"> Текстиль</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type" value="battery"> Батарейки</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type" value="construction"> Строительный мусор</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type" value="tree"> Дерево</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type" value="tire"> Автошины</label>
+                                    <label class="checkbox-item"><input type="checkbox" name="type" value="bulb"> Лампочки</label>
                                 </div>
                             </div>
 
@@ -162,7 +162,7 @@
 
                     <div class="map-content">
                         <div class="map-control">
-                            <div class="found-count">Найдено: <strong>2</strong> пункта</div>
+                            <div class="found-count">Найдено: <strong></strong></div>
                             <!-- кАРТА И СПИСОК -->
                             <div class="view-switcher">
                                 <input type="radio" id="viewMap" name="view" value="map" checked>
@@ -213,12 +213,6 @@
                     <div class="panel-content" id="panelContent">
                         <!-- Заполняется через JS -->
                     </div>
-
-                    <div class="panel-footer">
-                        <button class="panel-btn panel-btn-primary btn-review-full" onclick="openReviewForm()">
-                            Написать отзыв
-                        </button>
-                    </div>
                 </aside>
             </section>
         </main>
@@ -242,7 +236,7 @@
                             <li><a href="index.html">Главная</a></li>
                             <li><a href="map.html">Карта</a></li>
                             <li><a href="catalog.html">Каталог</a></li>
-                            <li><a href="profile.html">Личный кабинет</a></li>
+                            <li><a href="dashboard.html">Личный кабинет</a></li>
                         </ul>
                     </div>
                     <div class="footer-column">

@@ -2,6 +2,20 @@
 let orgData = {}; // Пустой объект, заполнится при загрузке
 let pointsData = [];
 let newsData = [];
+const WASTE_TYPES = [
+        { value: 'plastic', label: 'Пластик' },
+        { value: 'glass', label: 'Стекло' },
+        { value: 'electronic', label: 'Электроника' },
+        { value: 'metal', label: 'Металл' },
+        { value: 'paper', label: 'Бумага и картон' },
+        { value: 'furniture', label: 'Мебель и крупногабарит' },
+        { value: 'textile', label: 'Текстиль' },
+        { value: 'battery', label: 'Батарейки' },
+        { value: 'construction', label: 'Строительный мусор' },
+        { value: 'tree', label: 'Дерево' },
+        { value: 'tire', label: 'Автошины' },
+        { value: 'bulb', label: 'Лампочки' }
+    ];
 
 // ===== ЗАГРУЗКА И ИНИЦИАЛИЗАЦИЯ =====
 document.addEventListener('DOMContentLoaded', async () => {
@@ -19,40 +33,67 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => window.location.href = 'dashboard.html', 1500);
         return;
     }
-
-    // 2. Загружаем данные создания организации (имя, ИНН, статус)
-    const allOrgs = JSON.parse(localStorage.getItem('ck_orgRequests')) || [];
-    const createdOrg = allOrgs.find(o => o.id == orgId);
     
-    if (!createdOrg) {
-        toasts?.error('Организация не найдена') || alert('Организация не найдена');
-        setTimeout(() => window.location.href = 'dashboard.html', 2000);
+    const token = localStorage.getItem('ck_access_token');
+
+    try {
+
+
+        const response = await fetch(
+            `/api/v1/organizations/${orgId}/`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error('Организация не найдена');
+        }
+
+        orgData = await response.json();
+
+    } catch (err) {
+
+        window.toasts?.error('Не удалось загрузить организацию');
+
+        setTimeout(() => {
+            window.location.href = 'dashboard.html';
+        }, 1500);
+
         return;
     }
 
-    // 3. Загружаем сохранённый профиль (контакты, соцсети, аватар)
-    const savedProfile = JSON.parse(localStorage.getItem(`ck_orgData_${orgId}`)) || {};
+    const pointsResponse = await fetch(
+        '/api/v1/points/',
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
 
-    // 4. Объединяем данные: создание + профиль
-    orgData = {
-        id: orgId,
-        name: createdOrg.name || '',
-        inn: createdOrg.inn || '',
-        status: createdOrg.status || 'pending',
-        phone: savedProfile.phone || '',
-        email: savedProfile.email || '',
-        website: savedProfile.website || '',
-        socials: savedProfile.socials || { vk: '', tg: '', max: '' },
-        avatar: savedProfile.avatar || null,
-        createdAt: createdOrg.createdAt || new Date().toISOString().split('T')[0]
-    };
+    const allPoints = await pointsResponse.json();
 
-    // 5. Сохраняем объединённые данные
-    localStorage.setItem(`ck_orgData_${orgId}`, JSON.stringify(orgData));
+    pointsData = allPoints.filter(
+        point => point.organization === orgData.id
+    );
 
-    // 6. Загружаем остальные данные (пункты, новости) с динамическим ID
-    pointsData = JSON.parse(localStorage.getItem(`ck_orgPoints_${orgId}`)) || [];
-    newsData = JSON.parse(localStorage.getItem(`ck_orgNews_${orgId}`)) || [];
+    const newsResponse = await fetch(
+        '/api/v1/news/',
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const newsResult = await newsResponse.json();
+
+    newsData = Array.isArray(newsResult)
+        ? newsResult
+        : newsResult.results || [];
 
     // 7. Запускаем инициализацию интерфейса
     initOrgHeader();      // Обновляем шапку (название, статус, логотип)
@@ -65,6 +106,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     initAnalytics();      // Аналитика
     initEmployees();      // Сотрудники
     initOrgLogout();      // Выход
+    initAddressSuggestions(
+        'pointAddressInput',
+        'addressSuggestions'
+    );
+
+    initAddressSuggestions(
+        'editPointAddress',
+        'editAddressSuggestions'
+    );
+    initPhoneMask('pointPhoneInput');
+    initPhoneMask('editPointPhone');
+    initPhoneMask('orgInputPhone');
 });
 
 // ===== ШАПКА ОРГАНИЗАЦИИ =====
@@ -73,16 +126,15 @@ function initOrgHeader() {
     const badgeEl = document.getElementById('orgStatusBadge');
     const logoEl = document.getElementById('orgLogoPreview');
     
-    if (nameEl) nameEl.textContent = orgData.name || 'Загрузка...';
-    
+    if (nameEl) nameEl.textContent = orgData.name || '';
     if (badgeEl) {
-        const statusMap = { pending: 'На проверке', verified: 'Проверена', rejected: 'Отклонена' };
-        badgeEl.textContent = statusMap[orgData.status] || orgData.status;
+        const statusMap = { pending: 'На модерации', active: 'Активна', rejected: 'Отклонена' };
+        badgeEl.textContent = statusMap[orgData.status];
         badgeEl.className = `org-status-badge ${orgData.status}`;
     }
     
-    if (logoEl && orgData.avatar) {
-        logoEl.innerHTML = `<img src="${orgData.avatar}" style="width:100%;height:100%;border-radius:12px;object-fit:cover;" />`;
+    if (logoEl && orgData.logo) {
+        logoEl.innerHTML = `<img src="${orgData.logo}" style="width:100%;height:100%;border-radius:12px;object-fit:cover;" />`;
     }
 }
 
@@ -106,7 +158,7 @@ function initOrgProfile() {
         { id: 'orgInputInn', key: 'inn' },
         { id: 'orgInputPhone', key: 'phone' },
         { id: 'orgInputEmail', key: 'email' },
-        { id: 'orgInputWebsite', key: 'website' },
+        { id: 'orgInputWebsite', key: 'website_url' },
         { id: 'orgInputVK', key: 'socials.vk' },
         { id: 'orgInputTG', key: 'socials.tg' },
         { id: 'orgInputMAX', key: 'socials.max' }
@@ -132,44 +184,86 @@ function initOrgProfile() {
     });
 
     // Аватар
-    if (orgData.avatar) {
-        updateOrgAvatarPreview(orgData.avatar);
+    if (orgData.logo) {
+        updateOrgAvatarPreview(orgData.logo);
         document.getElementById('orgRemoveAvatar')?.style.setProperty('display', 'inline-block');
     }
 
     // Сохранение формы
     const form = document.getElementById('orgProfileForm');
     if (form) {
-        // Удаляем старые обработчики клонированием
-        const newForm = form.cloneNode(true);
-        form.parentNode.replaceChild(newForm, form);
         
-        newForm.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
+
             e.preventDefault();
-            
-            // Обновляем orgData из формы
-            orgData.name = document.getElementById('orgInputName').value.trim();
-            orgData.inn = document.getElementById('orgInputInn').value.trim();
-            orgData.phone = document.getElementById('orgInputPhone').value.trim();
-            orgData.email = document.getElementById('orgInputEmail').value.trim();
-            orgData.website = document.getElementById('orgInputWebsite').value.trim();
-            orgData.socials = {
-                vk: document.getElementById('orgInputVK').value.trim(),
-                tg: document.getElementById('orgInputTG').value.trim(),
-                max: document.getElementById('orgInputMAX').value.trim()
+
+            const token = localStorage.getItem('ck_access_token');
+
+            const payload = {
+                name: document.getElementById('orgInputName').value.trim(),
+
+                phone: document
+                    .getElementById('orgInputPhone')
+                    .value
+                    .replace(/\D/g, '')
+                    .replace(/^8/, '7')
+                    .replace(/^7/, '+7'),
+
+                email: document.getElementById('orgInputEmail').value.trim(),
+
+                website_url: document.getElementById('orgInputWebsite').value.trim(),
+
+                socials: {
+                    vk: document.getElementById('orgInputVK').value.trim(),
+                    tg: document.getElementById('orgInputTG').value.trim(),
+                    max: document.getElementById('orgInputMAX').value.trim()
+                }
             };
 
-            // Сохраняем с динамическим ключом
-            localStorage.setItem(`ck_orgData_${orgData.id}`, JSON.stringify(orgData));
-            
-            // Обновляем шапку
-            initOrgHeader();
-            
-            toasts?.success('Данные организации обновлены!', { duration: 3000 });
-            const statusEl = document.getElementById('orgFormStatus');
-            if (statusEl) {
-                statusEl.textContent = 'Сохранено!';
-                setTimeout(() => statusEl.textContent = '', 3000);
+            try {
+                const response = await fetch(
+                    `/api/v1/organizations/${orgData.id}/`,
+                    {
+                        method: 'PATCH',
+
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+
+                        body: JSON.stringify(payload)
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+
+
+                    const firstError =
+                        Object.values(data)[0]?.[0] ||
+                        data.detail ||
+                        'Ошибка сохранения';
+
+                    throw new Error(firstError);
+                }
+
+                orgData = data;
+
+                initOrgHeader();
+
+                window.toasts?.success(
+                    'Данные организации сохранены!',
+                    { duration: 3000 }
+                );
+
+            } catch (err) {
+
+
+                window.toasts?.error(
+                    err.message || 'Не удалось сохранить изменения',
+                    { duration: 3000 }
+                );
             }
         });
     }
@@ -193,11 +287,11 @@ function initOrgAvatarUpload() {
         if (!file) return;
 
         if (file.size > 5 * 1024 * 1024) {
-            toasts?.warning('Файл слишком большой. Максимум 5MB.', { duration: 3000 });
+            window.toasts?.warning('Файл слишком большой. Максимум 5MB.', { duration: 3000 });
             return;
         }
         if (!file.type.startsWith('image/')) {
-            toasts?.warning('Выберите изображение (JPG, PNG).', { duration: 3000 });
+            window.toasts?.warning('Выберите изображение (JPG, PNG).', { duration: 3000 });
             return;
         }
 
@@ -206,18 +300,18 @@ function initOrgAvatarUpload() {
             const base64 = event.target.result;
             updateOrgAvatarPreview(base64);
             
-            orgData.avatar = base64;
+            orgData.logo = base64;
             localStorage.setItem(`ck_orgData_${orgData.id}`, JSON.stringify(orgData));
             
             if (removeBtn) removeBtn.style.display = 'inline-block';
-            toasts?.success('Логотип обновлён!', { duration: 2000 });
+            window.toasts?.success('Логотип обновлён!', { duration: 2000 });
         };
         reader.readAsDataURL(file);
     });
 
     if (removeBtn) {
         removeBtn.addEventListener('click', () => {
-            orgData.avatar = null;
+            orgData.logo = null;
             localStorage.setItem(`ck_orgData_${orgData.id}`, JSON.stringify(orgData));
             
             const img = avatarPreview.querySelector('img');
@@ -226,7 +320,7 @@ function initOrgAvatarUpload() {
             removeBtn.style.display = 'none';
             avatarInput.value = '';
             
-            toasts?.info('Логотип удалён', { duration: 2000 });
+            window.toasts?.info('Логотип удалён', { duration: 2000 });
         });
     }
 }
@@ -262,6 +356,8 @@ function initPoints() {
             nameInput.style.background = '#f8f9fa';      // Серый фон
             nameInput.style.cursor = 'not-allowed';      // Курсор запрета
         }
+        document.getElementById('pointPhoneInput').value =
+            orgData.phone || '';
         
         modal?.classList.add('active');
     });
@@ -275,38 +371,94 @@ function initPoints() {
         resetPricesList(); // Очищаем динамические строки
     });
     
-    // Отправка формы
-    document.getElementById('addPointForm')?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        
-        // ✅ Сбор цен из динамических строк
-        const prices = {};
-        document.querySelectorAll('.price-row').forEach(row => {
-            const type = row.querySelector('.price-type-input').value.trim();
-            const price = row.querySelector('.price-value-input').value;
-            if (type && price > 0) {
-                prices[type] = parseFloat(price);
-            }
-        });
+    document.getElementById('addPointForm')
+    ?.addEventListener('submit', async (e) => {
 
-        const newPoint = {
-            id: Date.now(),
-            name: formData.get('pointName'),
-            address: formData.get('address'),
-            schedule: formData.get('schedule'),
-            phone: formData.get('phone'),
-            prices: prices // Сохраняем объект цен
+        e.preventDefault();
+
+        const token = localStorage.getItem('ck_access_token');
+
+        const formData = new FormData(e.target);
+
+        const lat = document
+            .getElementById('pointAddressInput')
+            .dataset.lat;
+
+        const lon = document
+            .getElementById('pointAddressInput')
+            .dataset.lon;
+
+        if (!lat || !lon) {
+
+            window.toasts?.warning(
+                'Выберите адрес из подсказок',
+                { duration: 3000 }
+            );
+
+            return;
+        }
+
+        const payload = {
+
+            organization: orgData.id,
+
+            adress: formData.get('address'),
+
+            work_schedule: formData.get('schedule'),
+
+            location: `POINT(${parseFloat(lon)} ${parseFloat(lat)})`
         };
-        
-        pointsData.push(newPoint);
-        localStorage.setItem(`ck_orgPoints_${orgData.id}`, JSON.stringify(pointsData));
-        renderPoints();
-        
-        document.getElementById('addPointModal')?.classList.remove('active');
-        e.target.reset();
-        resetPricesList();
-        toasts?.success('Пункт добавлен!', { duration: 3000 });
+
+        try {
+
+            const response = await fetch(
+                '/api/v1/points/',
+                {
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+
+                const firstError =
+                    Object.values(data)[0]?.[0] ||
+                    data.detail ||
+                    'Ошибка создания';
+
+                throw new Error(firstError);
+            }
+
+            pointsData.push(data);
+
+            renderPoints();
+
+            document
+                .getElementById('addPointModal')
+                ?.classList.remove('active');
+
+            e.target.reset();
+
+            window.toasts?.success(
+                'Пункт добавлен!',
+                { duration: 3000 }
+            );
+
+        } catch (err) {
+
+            window.toasts?.error(
+                err.message,
+                { duration: 3000 }
+            );
+        }
     });
 }
 
@@ -317,17 +469,56 @@ function initPricesBlock() {
     if (!list || !addBtn) return;
 
     const createRow = () => {
+
         const row = document.createElement('div');
+
         row.className = 'price-row';
+
         row.innerHTML = `
+
             <div class="price-type-group">
-                <input type="text" class="price-type-input" placeholder="Тип отхода" list="wasteTypesOptions" required />
+
+                <select
+                    class="price-type-input"
+                    required
+                >
+
+                    <option value="">
+                        Выберите тип отхода
+                    </option>
+
+                    ${WASTE_TYPES.map(item => `
+                        <option value="${item.value}">
+                            ${item.label}
+                        </option>
+                    `).join('')}
+
+                </select>
+
             </div>
+
             <div class="price-value-group">
-                <input type="number" class="price-value-input" placeholder="Цена ₽/кг" step="0.1" min="0" required />
+
+                <input
+                    type="number"
+                    class="price-value-input"
+                    placeholder="Цена ₽/кг"
+                    step="0.1"
+                    min="0"
+                    required
+                />
+
             </div>
-            <button type="button" class="btn-remove-price" title="Удалить">&times;</button>
+
+            <button
+                type="button"
+                class="btn-remove-price"
+                title="Удалить"
+            >
+                &times;
+            </button>
         `;
+
         return row;
     };
 
@@ -355,61 +546,437 @@ function renderPoints() {
     if (!list) return;
     if (!Array.isArray(pointsData)) pointsData = [];
 
-    if (pointsData.length === 0) {
-        list.innerHTML = '<div class="empty-state" style="text-align:center;padding:40px;color:#888;">Нет добавленных пунктов</div>';
-        return;
-    }
-
     list.innerHTML = pointsData.map(point => `
         <div class="point-card" onclick="openEditPointModal(${point.id})">
             <div class="point-info">
-                <h4>${point.name}</h4>
-                <span class="point-address">${point.address}</span>
+                <h4>${orgData.name}</h4>
+                <span class="point-adress">${point.adress}</span>
             </div>
         </div>
     `).join('');
 }
 
 // ===== ОТКРЫТИЕ МОДАЛЬНОГО ОКНА РЕДАКТИРОВАНИЯ =====
-window.openEditPointModal = function(id) {
+window.openEditPointModal = async function(id) {
+    const token = localStorage.getItem('ck_access_token');
+
+    const wasteResponse = await fetch(
+        `/api/v1/waste-types/?point=${id}`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const wasteData = await wasteResponse.json();
     const point = pointsData.find(p => p.id === id);
     if (!point) return;
 
     document.getElementById('editPointId').value = point.id;
-    document.getElementById('editPointName').value = point.name;
-    document.getElementById('editPointAddress').value = point.address;
-    document.getElementById('editPointSchedule').value = point.schedule || '';
-    document.getElementById('editPointPhone').value = point.phone || '';
+    document.getElementById('editPointName').value = orgData.name;
+    document.getElementById('editPointPhone').value =
+        orgData.phone || '';
+    document.getElementById('editPointAddress').value = point.adress;
+    document.getElementById('editPointSchedule').value = point.work_schedule || '';
 
-    // Заполняем цены
-    const pricesList = document.getElementById('editPricesList');
+    const pricesList = document.getElementById(
+        'editPricesList'
+    );
+
     pricesList.innerHTML = '';
-    if (point.prices && Object.keys(point.prices).length > 0) {
-        for (const [type, price] of Object.entries(point.prices)) {
-            addPriceRowToEditList(type, price);
-        }
+
+    
+
+    if (wasteData.length > 0) {
+
+        wasteData.forEach(item => {
+
+            addPriceRowToEditList({
+
+                id: item.id,
+
+                waste_name: item.waste_name,
+
+                waste_type: item.waste_type,
+
+                preparation: item.preparation,
+
+                not_accepted: item.not_accepted,
+
+                price: item.price,
+
+                is_actual_price: item.is_actual_price,
+
+                photo: item.photo
+            });
+        });
+
     } else {
-        addPriceRowToEditList('', '');
+
+        addPriceRowToEditList();
     }
 
     document.getElementById('editPointModal').classList.add('active');
 };
 
+window.openEditNewsModal = function(id) {
+
+    const news = newsData.find(
+        item => item.id === id
+    );
+
+    if (!news) return;
+
+    document.getElementById(
+        'editNewsId'
+    ).value = news.id;
+
+    document.getElementById(
+        'editNewsTitle'
+    ).value = news.title || '';
+
+    document.getElementById(
+        'editNewsText'
+    ).value = news.text || '';
+
+    const preview = document.getElementById(
+        'editNewsPreview'
+    );
+
+    preview.innerHTML = news.image
+        ? `
+            <img
+                src="${news.image}"
+                style="
+                    width:100%;
+                    max-height:260px;
+                    object-fit:cover;
+                    border-radius:18px;
+                "
+            />
+        `
+        : '';
+
+    document
+        .getElementById('editNewsModal')
+        .classList.add('active');
+};
+
+document.getElementById('editNewsForm')
+?.addEventListener('submit', async (e) => {
+
+    e.preventDefault();
+
+    const id = document.getElementById(
+        'editNewsId'
+    ).value;
+
+    const token = localStorage.getItem(
+        'ck_access_token'
+    );
+
+    const formData = new FormData();
+
+    formData.append(
+        'title',
+        document.getElementById(
+            'editNewsTitle'
+        ).value
+    );
+
+    formData.append(
+        'text',
+        document.getElementById(
+            'editNewsText'
+        ).value
+    );
+
+    formDataToSend.append(
+        'status',
+        'pending'
+    );
+
+    const image =
+        document.getElementById(
+            'editNewsImage'
+        )?.files?.[0];
+
+    if (image) {
+
+        formData.append(
+            'image',
+            image
+        );
+    }
+
+    try {
+
+        const response = await fetch(
+            `/api/v1/news/${id}/`,
+            {
+                method: 'PATCH',
+
+                headers: {
+                    Authorization:
+                        `Bearer ${token}`
+                },
+
+                body: formData
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+
+            throw new Error(
+                Object.values(data)[0]?.[0]
+                || 'Ошибка'
+            );
+        }
+
+        const idx = newsData.findIndex(
+            item => item.id == id
+        );
+
+        if (idx > -1) {
+
+            newsData[idx] = data;
+        }
+
+        renderNews();
+
+        closeModal('editNewsModal');
+
+        window.toasts?.success(
+            'Новость обновлена!',
+            { duration: 3000 }
+        );
+
+    } catch (err) {
+
+        window.toasts?.error(
+            err.message,
+            { duration: 3000 }
+        );
+    }
+});
+
+document.getElementById('deleteNewsBtn')
+?.addEventListener('click', async () => {
+
+    const id = document.getElementById(
+        'editNewsId'
+    ).value;
+
+    if (!confirm('Удалить новость?')) {
+        return;
+    }
+
+    const token = localStorage.getItem(
+        'ck_access_token'
+    );
+
+    try {
+
+        const response = await fetch(
+            `/api/v1/news/${id}/`,
+            {
+                method: 'DELETE',
+
+                headers: {
+                    Authorization:
+                        `Bearer ${token}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+
+            throw new Error(
+                'Ошибка удаления'
+            );
+        }
+
+        newsData = newsData.filter(
+            item => item.id != id
+        );
+
+        renderNews();
+
+        closeModal('editNewsModal');
+
+        window.toasts?.success(
+            'Новость удалена!',
+            { duration: 3000 }
+        );
+
+    } catch (err) {
+
+        window.toasts?.error(
+            err.message,
+            { duration: 3000 }
+        );
+    }
+});
 // ===== ВСПОМОГАТЕЛЬНАЯ: ДОБАВЛЕНИЕ СТРОКИ ЦЕН В МОДАЛКУ РЕДАКТИРОВАНИЯ =====
-function addPriceRowToEditList(type = '', price = '') {
-    const list = document.getElementById('editPricesList');
-    const row = document.createElement('div');
-    row.className = 'price-row';
-    row.innerHTML = `
-        <div class="price-type-group">
-            <input type="text" class="price-type-input" value="${type}" placeholder="Тип отхода" list="wasteTypesOptions" required />
+function addPriceRowToEditList(data = {}) {
+
+    const container =
+        document.getElementById('editPricesList');
+
+    const card = document.createElement('div');
+
+    card.className = 'waste-card';
+
+    card.innerHTML = `
+
+        <input
+            type="hidden"
+            class="waste-id-input"
+            value="${data.id || ''}"
+        />
+
+        <div class="waste-card-top">
+
+            <div class="form-group">
+
+                <label>Название отхода</label>
+
+                <input
+                    type="text"
+                    class="waste-name-input"
+                    value="${data.waste_name || ''}"
+                    placeholder="Например: ПЭТ бутылки"
+                />
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Тип отхода</label>
+
+                <select
+                    class="waste-type-input"
+                    required
+                >
+
+                    <option value="">
+                        Выберите тип
+                    </option>
+
+                    ${WASTE_TYPES.map(item => `
+                        <option
+                            value="${item.value}"
+                            ${item.value === data.waste_type
+                                ? 'selected'
+                                : ''}
+                        >
+                            ${item.label}
+                        </option>
+                    `).join('')}
+
+                </select>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Цена ₽/кг</label>
+
+                <input
+                    type="number"
+                    class="waste-price-input"
+                    value="${data.price || ''}"
+                    step="0.1"
+                    min="0"
+                />
+
+            </div>
+
         </div>
-        <div class="price-value-group">
-            <input type="number" class="price-value-input" value="${price}" placeholder="₽/кг" step="0.1" min="0" required />
+
+        <div class="form-group">
+
+            <label>Как подготовить</label>
+
+            <textarea
+                class="waste-preparation-input"
+                placeholder="Например: промыть и снять крышку"
+            >${data.preparation || ''}</textarea>
+
         </div>
-        <button type="button" class="btn-remove-price" title="Удалить">&times;</button>
+
+        <div class="form-group">
+
+            <label>Не принимается</label>
+
+            <textarea
+                class="waste-notaccepted-input"
+                placeholder="Например: грязный пластик"
+            >${data.not_accepted || ''}</textarea>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>Фото отхода</label>
+
+            <input
+                type="file"
+                class="waste-photo-input"
+                accept="image/*"
+            />
+
+        </div>
+
+        <div class="waste-card-actions">
+
+            <button
+                type="button"
+                class="btn-small delete remove-waste-btn"
+            >
+                Удалить
+            </button>
+
+        </div>
     `;
-    list.appendChild(row);
+
+    card
+        .querySelector('.remove-waste-btn')
+        .addEventListener('click', () => {
+
+            card
+    .querySelector('.remove-waste-btn')
+    .addEventListener('click', async () => {
+
+        const wasteId = card
+                .querySelector('.waste-id-input')
+                ?.value;
+
+            if (wasteId) {
+
+                const token = localStorage.getItem(
+                    'ck_access_token'
+                );
+                await fetch(
+                    `/api/v1/waste-types/${wasteId}/`,
+                    {
+                        method: 'DELETE',
+
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
+            }
+
+            card.remove();
+        });
+    });
+
+    container.appendChild(card);
 }
 
 // ===== ИНИЦИАЛИЗАЦИЯ МОДАЛКИ РЕДАКТИРОВАНИЯ =====
@@ -419,10 +986,12 @@ function initEditPointModal() {
         document.getElementById('editPointModal').classList.remove('active');
     });
 
-    // Добавление строки цены
-    document.getElementById('addEditPriceRow')?.addEventListener('click', () => {
-        addPriceRowToEditList();
-    });
+    document
+        .getElementById('addEditPriceRow')
+        ?.addEventListener('click', () => {
+
+            addPriceRowToEditList();
+        });
 
     // Удаление строки цены
     document.getElementById('editPricesList')?.addEventListener('click', (e) => {
@@ -441,98 +1010,405 @@ function initEditPointModal() {
     });
 
     // Сохранение изменений
-    document.getElementById('editPointForm')?.addEventListener('submit', (e) => {
+    document.getElementById('editPointForm')
+    ?.addEventListener('submit', async (e) => {
+
         e.preventDefault();
-        const id = parseInt(document.getElementById('editPointId').value);
-        const idx = pointsData.findIndex(p => p.id === id);
+
+        const token = localStorage.getItem('ck_access_token');
+
+        const id = parseInt(
+            document.getElementById('editPointId').value
+        );
+
+        const idx = pointsData.findIndex(
+            p => p.id === id
+        );
+
         if (idx === -1) return;
 
-        // Собираем цены из модалки
-        const prices = {};
-        document.querySelectorAll('#editPricesList .price-row').forEach(row => {
-            const type = row.querySelector('.price-type-input').value.trim();
-            const price = row.querySelector('.price-value-input').value;
-            if (type && price && parseFloat(price) > 0) {
-                prices[type] = parseFloat(price);
-            }
-        });
+        const payload = {
 
-        // Обновляем данные
-        pointsData[idx] = {
-            ...pointsData[idx],
-            address: document.getElementById('editPointAddress').value.trim(),
-            schedule: document.getElementById('editPointSchedule').value.trim(),
-            phone: document.getElementById('editPointPhone').value.trim(),
-            prices: prices
+            adress: document
+                .getElementById('editPointAddress')
+                .value
+                .trim(),
+
+            work_schedule: document
+                .getElementById('editPointSchedule')
+                .value
+                .trim()
         };
 
-        localStorage.setItem(`ck_orgPoints_${orgData.id}`, JSON.stringify(pointsData));
-        renderPoints();
-        document.getElementById('editPointModal').classList.remove('active');
-        window.toasts?.success('Пункт обновлён!', { duration: 3000 });
+        try {
+
+            const response = await fetch(
+                `/api/v1/points/${id}/`,
+                {
+                    method: 'PATCH',
+
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+
+                const firstError =
+                    Object.values(data)[0]?.[0] ||
+                    data.detail ||
+                    'Ошибка сохранения';
+
+                throw new Error(firstError);
+            }
+
+            pointsData[idx] = data;
+            const wasteCards = document.querySelectorAll(
+                '#editPricesList .waste-card'
+            );
+
+            for (const card of wasteCards) {
+
+                const wasteId = card
+                    .querySelector('.waste-id-input')
+                    ?.value;
+
+                const waste_name = card
+                    .querySelector('.waste-name-input')
+                    ?.value
+                    .trim();
+
+                const waste_type = card
+                    .querySelector('.waste-type-input')
+                    ?.value;
+
+                const preparation = card
+                    .querySelector('.waste-preparation-input')
+                    ?.value
+                    .trim();
+
+                const not_accepted = card
+                    .querySelector('.waste-notaccepted-input')
+                    ?.value
+                    .trim();
+
+                const price = parseFloat(
+                    card
+                        .querySelector('.waste-price-input')
+                        ?.value
+                );
+
+                const is_actual_price = card
+                    .querySelector('.waste-actual-input')
+                    ?.checked;
+
+                const photoInput = card
+                    .querySelector('.waste-photo-input');
+
+                if (!waste_name || !waste_type) {
+                    continue;
+                }
+
+                const formData = new FormData();
+
+                formData.append('point', id);
+
+                formData.append('waste_name', waste_name);
+
+                formData.append('waste_type', waste_type);
+
+                formData.append(
+                    'preparation',
+                    preparation || ''
+                );
+
+                formData.append(
+                    'not_accepted',
+                    not_accepted || ''
+                );
+
+                if (!isNaN(price)) {
+                    formData.append('price', price);
+                }
+
+                formData.append(
+                    'is_actual_price',
+                    true
+                );
+
+                if (photoInput?.files?.[0]) {
+
+                    formData.append(
+                        'photo',
+                        photoInput.files[0]
+                    );
+                }
+
+                let response;
+
+                // UPDATE
+                if (wasteId) {
+                    response = await fetch(
+                        `/api/v1/waste-types/${wasteId}/`,
+                        {
+                            method: 'PATCH',
+
+                            headers: {
+                                Authorization: `Bearer ${token}`
+                            },
+
+                            body: formData
+                        }
+                    );
+
+                } else {
+
+                    // CREATE
+                    response = await fetch(
+                        '/api/v1/waste-types/',
+                        {
+                            method: 'POST',
+
+                            headers: {
+                                Authorization: `Bearer ${token}`
+                            },
+
+                            body: formData
+                        }
+                    );
+                }
+
+                let responseData;
+
+                try {
+
+                    responseData = await response.json();
+
+                } catch {
+
+                    throw new Error(
+                        'Ошибка сервера'
+                    );
+                }
+
+                if (!response.ok) {
+
+                    const field =
+                        Object.keys(responseData)[0];
+
+                    throw new Error(
+                        `${field}: ${responseData[field]?.[0]}`
+                    );
+                }
+            }
+            
+            renderPoints();
+
+            await openEditPointModal(id);
+
+            window.toasts?.success(
+                'Пункт обновлён!',
+                { duration: 3000 }
+            );
+
+        } catch (err) {
+
+            window.toasts?.error(
+                err.message,
+                { duration: 3000 }
+            );
+        }
     });
 }
 
-window.deletePoint = function(id) {
-    if (confirm('Удалить этот пункт?')) {
-        const idx = pointsData.findIndex(p => p.id === id);
-        if (idx > -1) {
-            pointsData.splice(idx, 1);
-            localStorage.setItem(`ck_orgPoints_${orgData.id}`, JSON.stringify(pointsData));
-            renderPoints();
-            toasts?.info('Пункт удалён', { duration: 2000 });
+window.deletePoint = async function(id) {
+
+    if (!confirm('Удалить этот пункт?')) {
+        return;
+    }
+
+    const token = localStorage.getItem('ck_access_token');
+
+    try {
+
+        const response = await fetch(
+            `/api/v1/points/${id}/`,
+            {
+                method: 'DELETE',
+
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error('Не удалось удалить пункт');
         }
+
+        pointsData = pointsData.filter(
+            point => point.id !== id
+        );
+
+        renderPoints();
+
+        window.toasts?.info(
+            'Пункт удалён',
+            { duration: 2000 }
+        );
+
+    } catch (err) {
+
+        window.toasts?.error(
+            err.message,
+            { duration: 3000 }
+        );
     }
 };
 
-// ===== ОТЗЫВЫ =====
-const feedbackData = [
-    { id: 1, userName: 'annakir', rating: 5, text: 'Очень удобный пункт!', date: '20.04.2026', reply: null },
-    { id: 2, userName: 'pupupu', rating: 4, text: 'Хорошо, но очередь.', date: '08.04.2026', reply: null }
-];
+let feedbackData = [];
 
-function initFeedback() { renderFeedback(); }
+async function initFeedback() {
+
+    const response = await fetch(
+        `/api/v1/reviews/?organization=${orgData.id}`
+    );
+
+    feedbackData = await response.json();
+
+    renderFeedback();
+}
 
 function renderFeedback() {
     const list = document.getElementById('feedbackList');
     if (!list) return;
     
-    list.innerHTML = feedbackData.map(fb => `
-        <div class="feedback-card">
-            <div class="feedback-header">
-                <div>
-                    <span class="feedback-user">${fb.userName}</span>
-                    <div class="feedback-rating">${'★'.repeat(fb.rating)}${'☆'.repeat(5-fb.rating)}</div>
-                </div>
-                <span class="feedback-date">${fb.date}</span>
-            </div>
-            <p class="feedback-text">${fb.text}</p>
-            <div class="feedback-reply">
-                ${fb.reply 
-                    ? `<p><strong>Ваш ответ:</strong> ${fb.reply}</p>` 
-                    : `<textarea placeholder="Напишите ответ..."></textarea>
-                       <div class="feedback-reply-actions">
-                           <button class="btn-small edit" onclick="sendReply(${fb.id}, this)">Отправить</button>
-                       </div>`
-                }
-            </div>
-        </div>
-    `).join('');
-}
+        list.innerHTML = feedbackData.map(fb => `
+            <div class="feedback-card">
 
-window.sendReply = function(feedbackId, btn) {
-    const textarea = btn.closest('.feedback-reply')?.querySelector('textarea');
-    const reply = textarea?.value.trim();
+                <div class="feedback-header">
+
+                    <div class="feedback-info">
+
+                        <span class="feedback-user">
+                            ${fb.user}
+                        </span>
+
+                        <div class="feedback-date">
+                            ${new Date(fb.created_at).toLocaleString('ru-RU')}
+                        </div>
+
+                        <div class="feedback-point">
+                            ${fb.point_name}
+                        </div>
+
+                    </div>
+
+                    <span class="feedback-rating">
+                        ${'★'.repeat(fb.rating)}
+                    </span>
+
+                </div>
+
+                <div class="feedback-text">
+                    ${fb.text}
+                </div>
+                <div class="feedback-reply">
+                    ${fb.reply 
+                        ? `<p><strong>Ваш ответ:</strong> ${fb.reply}</p>` 
+                        : `<textarea placeholder="Напишите ответ..."></textarea>
+                        <div class="feedback-reply-actions">
+                            <button class="btn-small edit" onclick="sendReply(${fb.id}, this)">Отправить</button>
+                        </div>`
+                    }
+                </div>
+            </div>
+        `).join('');
+    }
+
+window.sendReply = async function(feedbackId, btn) {
+
+    const textarea =
+        btn.closest('.feedback-reply')
+           ?.querySelector('textarea');
+
+    const reply =
+        textarea?.value.trim();
+
     if (!reply) {
-        toasts?.warning('Напишите текст ответа', { duration: 2000 });
+
+        window.toasts?.warning(
+            'Напишите текст ответа',
+            { duration: 2000 }
+        );
+
         return;
     }
-    
-    const fb = feedbackData.find(f => f.id === feedbackId);
-    if (fb) {
-        fb.reply = reply;
+
+    const token =
+        localStorage.getItem(
+            'ck_access_token'
+        );
+
+    try {
+
+        const response = await fetch(
+            `/api/v1/reviews/${feedbackId}/`,
+            {
+                method: 'PATCH',
+
+                headers: {
+                    Authorization:
+                        `Bearer ${token}`,
+                    'Content-Type':
+                        'application/json'
+                },
+
+                body: JSON.stringify({
+                    reply: reply
+                })
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                'Ошибка сохранения'
+            );
+        }
+
+        const fb =
+            feedbackData.find(
+                f => f.id === feedbackId
+            );
+
+        if (fb) {
+            fb.reply = reply;
+        }
+
         renderFeedback();
-        toasts?.success('Ответ отправлен', { duration: 2000 });
+
+        window.toasts?.success(
+            'Ответ сохранён',
+            { duration: 2000 }
+        );
+
+    } catch (err) {
+
+        window.toasts?.error(
+            err.message,
+            { duration: 3000 }
+        );
     }
 };
 
@@ -548,26 +1424,92 @@ function initNews() {
         document.getElementById('addNewsModal')?.classList.remove('active');
     });
     
-    document.getElementById('addNewsForm')?.addEventListener('submit', (e) => {
+    document.getElementById('addNewsForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
         
-        const newNews = {
-            id: Date.now(),
-            title: formData.get('newsTitle'),
-            text: formData.get('newsText'),
-            type: formData.get('newsType'),
-            status: 'pending',
-            date: new Date().toISOString().split('T')[0]
-        };
-        
-        newsData.unshift(newNews);
-        localStorage.setItem(`ck_orgNews_${orgData.id}`, JSON.stringify(newsData));
-        renderNews();
-        
-        document.getElementById('addNewsModal')?.classList.remove('active');
-        e.target.reset();
-        toasts?.success('Новость отправлена на модерацию!', { duration: 4000 });
+        const token = localStorage.getItem(
+            'ck_access_token'
+        );
+
+        const formDataToSend = new FormData();
+
+        formDataToSend.append(
+            'title',
+            formData.get('newsTitle')
+        );
+
+        formDataToSend.append(
+            'text',
+            formData.get('newsText')
+        );
+        formDataToSend.append(
+            'status',
+            'pending'
+        );
+
+        const imageFile =
+            document.getElementById(
+                'newsImageInput'
+            )?.files?.[0];
+
+        if (imageFile) {
+
+            formDataToSend.append(
+                'image',
+                imageFile
+            );
+        }
+
+        try {
+
+            const response = await fetch(
+                '/api/v1/news/',
+                {
+                    method: 'POST',
+
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    },
+
+                    body: formDataToSend
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+
+                const field =
+                    Object.keys(data)[0];
+
+                throw new Error(
+                    `${field}: ${data[field]?.[0]}`
+                );
+            }
+
+            newsData.unshift(data);
+
+            renderNews();
+
+            document
+                .getElementById('addNewsModal')
+                ?.classList.remove('active');
+
+            e.target.reset();
+
+            window.toasts?.success(
+                'Новость сохранена!',
+                { duration: 3000 }
+            );
+
+        } catch (err) {
+
+            window.toasts?.error(
+                err.message,
+                { duration: 3000 }
+            );
+        }
     });
 }
 
@@ -575,110 +1517,197 @@ function renderNews() {
     const list = document.getElementById('newsList');
     if (!list) return;
     
-    const typeMap = { news: 'Новость', promotion: 'Акция', announcement: 'Объявление' };
-    const statusMap = { pending: 'На проверке', published: 'Опубликовано', rejected: 'Отклонена' };
-    
     list.innerHTML = newsData.map(item => `
-        <div class="news-card">
+
+        <div
+            class="news-card"
+            onclick="openEditNewsModal(${item.id})"
+        >
+
+            ${item.image ? `
+                <img
+                    src="${item.image}"
+                    class="news-image"
+                    alt="${item.title}"
+                />
+            ` : ''}
+
             <div class="news-header">
-                <h4 class="news-title">${item.title}</h4>
-                <span class="news-type ${item.type}">${typeMap[item.type] || item.type}</span>
+
+                <h4 class="news-title">
+                    ${item.title}
+                </h4>
+
             </div>
-            <p class="news-text">${item.text}</p>
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span class="news-date" style="font-size:13px;color:#888;">${item.date}</span>
-                <span class="news-status ${item.status}">${statusMap[item.status] || item.status}</span>
-            </div>
+
+            <p class="news-text">
+                ${item.text}
+            </p>
+
+            <span class="news-date">
+                ${new Date(
+                    item.created_at
+                ).toLocaleDateString('ru-RU')}
+            </span>
+
         </div>
+
     `).join('');
 }
 
-function initAnalytics() {
-    // 🔹 Заглушка данных (замени на fetch к API)
-    const data = {
-        views: 1247,
-        submissions: 89,
-        avgRating: 4.7,
-        // Твой точный список типов отходов
-        weightByType: {
-            'Пластик': 342,
-            'Стекло': 89,
-            'Электроника': 45,
-            'Металл': 203,
-            'Бумага и картон': 156,
-            'Мебель и крупногабарит': 34,
-            'Текстиль': 28,
-            'Батарейки': 12,
-            'Строительный мусор': 56,
-            'Дерево': 41,
-            'Автошины': 18,
-            'Лампочки': 9
-        },
-        ratingDistribution: { 5: 52, 4: 23, 3: 8, 2: 4, 1: 2 }
-    };
+async function initAnalytics() {
+    const token =
+        localStorage.getItem(
+            'ck_access_token'
+        );
+
+    const response = await fetch(
+        `/api/v1/organizations/${orgData.id}/analytics/`,
+        {
+            headers: {
+                Authorization:
+                    `Bearer ${token}`
+            }
+        }
+    );
+
+    const data =
+        await response.json();
+
 
     // Основные метрики
     document.getElementById('totalViews').textContent = data.views.toLocaleString('ru-RU');
     document.getElementById('totalSubmissions').textContent = data.submissions.toLocaleString('ru-RU');
-    document.getElementById('avgRating').textContent = data.avgRating.toFixed(1);
+    document.getElementById('avgRating').textContent = Number(data.avg_rating || 0).toFixed(1);
 
     // Сданный вес (сортировка по убыванию + расчёт процентов для баров)
     const weightChart = document.getElementById('weightChart');
-    const sortedWeight = Object.entries(data.weightByType).sort((a, b) => b[1] - a[1]);
-    const maxWeight = sortedWeight.length > 0 ? sortedWeight[0][1] : 1;
+    const sortedWeight = (
+        data.weight_stats || []
+    )
+    .sort(
+        (a, b) =>
+            Number(b.total_weight)
+            - Number(a.total_weight)
+    );
+    const maxWeight =
+        sortedWeight.length
+            ? Number(
+                sortedWeight[0].total_weight
+            )
+            : 1;
 
-    weightChart.innerHTML = sortedWeight.map(([type, weight]) => {
-        const percent = (weight / maxWeight) * 100;
-        return `
-            <div class="weight-row">
-                <span class="weight-label">${type}</span>
-                <div class="weight-bar-wrapper">
-                    <div class="weight-bar" style="width: ${percent}%"></div>
+    weightChart.innerHTML =
+        sortedWeight.map(item => {
+
+            const weight =
+                Number(item.total_weight);
+
+            const percent =
+                (weight / maxWeight) * 100;
+
+            return `
+                <div class="weight-row">
+                    <span class="weight-label">
+                        ${getWasteLabel(
+                            item.waste_type__waste_type
+                        )}
+                    </span>
+
+                    <div class="weight-bar-wrapper">
+                        <div
+                            class="weight-bar"
+                            style="width:${percent}%"
+                        ></div>
+                    </div>
+
+                    <span class="weight-value">
+                        ${weight} кг
+                    </span>
                 </div>
-                <span class="weight-value">${weight} кг</span>
-            </div>
-        `;
-    }).join('');
+            `;
+        }).join('');
 
-    // 3️Распределение оценок (от 5 до 1)
+    // Распределение оценок
     const ratingDist = document.getElementById('ratingDistribution');
-    const ratingLabels = { 
-        5: '<span style="color:#FFD700">★★★★★</span>', 
-        4: '<span style="color:#FFD700">★★★★</span>', 
+
+    const ratingLabels = {
+        5: '<span style="color:#FFD700">★★★★★</span>',
+        4: '<span style="color:#FFD700">★★★★</span>',
         3: '<span style="color:#FFD700">★★★</span>',
         2: '<span style="color:#FFD700">★★</span>',
         1: '<span style="color:#FFD700">★</span>'
     };
-    const totalRatings = Object.values(data.ratingDistribution).reduce((a, b) => a + b, 0) || 1;
 
-    ratingDist.innerHTML = [5, 4, 3, 2, 1].map(star => {
-        const count = data.ratingDistribution[star] || 0;
-        const percent = (count / totalRatings) * 100;
-        return `
-            <div class="rating-row">
-                <span class="rating-label">${ratingLabels[star]}</span>
-                <div class="rating-bar-wrapper">
-                    <div class="rating-bar" style="width: ${percent}%"></div>
+    const ratingsMap = {};
+
+    (data.rating_stats || []).forEach(item => {
+        ratingsMap[item.rating] = item.count;
+    });
+
+    const totalRatings =
+        Object.values(ratingsMap)
+            .reduce((a, b) => a + b, 0) || 1;
+
+    ratingDist.innerHTML = [5, 4, 3, 2, 1]
+        .map(star => {
+
+            const count =
+                ratingsMap[star] || 0;
+
+            const percent =
+                (count / totalRatings) * 100;
+
+            return `
+                <div class="rating-row">
+
+                    <span class="rating-label">
+                        ${ratingLabels[star]}
+                    </span>
+
+                    <div class="rating-bar-wrapper">
+
+                        <div
+                            class="rating-bar"
+                            style="width:${percent}%"
+                        ></div>
+
+                    </div>
+
+                    <span class="rating-count">
+                        ${count}
+                    </span>
+
                 </div>
-                <span class="rating-count">${count}</span>
-            </div>
-        `;
-    }).join('');
+            `;
+        })
+        .join('');
 
 }
 
 // ===== СОТРУДНИКИ =====
-const employeesData = [
-    { id: 1, name: 'Иван Петров', email: 'ivan@eco-ural.ru', role: 'owner' },
-    { id: 2, name: 'Мария Сидорова', email: 'maria@eco-ural.ru', role: 'manager' },
-    { id: 3, name: 'Алексей Козлов', email: 'alex@eco-ural.ru', role: 'member' }
-];
-const currentUser = { email: 'ivan@eco-ural.ru', role: 'owner' };
+let employeesData = [];
 
-function initEmployees() {
+async function initEmployees() {
+    const token =
+        localStorage.getItem(
+            'ck_access_token'
+        );
+
+    const response = await fetch(
+        `/api/v1/employees/?organization=${orgData.id}`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    employeesData = await response.json();
+
     renderEmployees();
     
-    if (currentUser.role === 'owner') {
+    if (orgData.my_role === 'leader') {
         document.getElementById('inviteEmployeeBtn')?.style.setProperty('display', 'inline-flex');
     }
     
@@ -690,12 +1719,61 @@ function initEmployees() {
         document.getElementById('inviteModal')?.classList.remove('active');
     });
     
-    document.getElementById('inviteForm')?.addEventListener('submit', (e) => {
+    document.getElementById('inviteForm')
+    ?.addEventListener('submit', async (e) => {
+
         e.preventDefault();
+
+        const token =
+            localStorage.getItem(
+                'ck_access_token'
+            );
+
         const email = e.target.email.value;
-        toasts?.success(`Приглашение отправлено на ${email}`, { duration: 4000 });
-        document.getElementById('inviteModal')?.classList.remove('active');
+
+        const response = await fetch(
+            '/api/v1/employees/invite/',
+            {
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+
+                body: JSON.stringify({
+                    email,
+                    organization: orgData.id,
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+
+            window.toasts?.error(
+                data.detail ||
+                data.email ||
+                'Ошибка'
+            );
+
+            return;
+        }
+
+        employeesData.push(data);
+
+        renderEmployees();
+
+        document
+            .getElementById('inviteModal')
+            ?.classList.remove('active');
+
         e.target.reset();
+
+        window.toasts?.success(
+            'Сотрудник добавлен'
+        );
     });
 }
 
@@ -703,21 +1781,21 @@ function renderEmployees() {
     const list = document.getElementById('employeesList');
     if (!list) return;
     
-    const roleMap = { owner: 'Владелец', manager: 'Менеджер', member: 'Участник' };
-    const isOwner = currentUser.role === 'owner';
+    const roleMap = { leader: 'Владелец', employee: 'Работник' };
+    const isOwner = orgData.my_role === 'leader';
     
     list.innerHTML = employeesData.map(emp => `
         <div class="employee-card">
             <div class="employee-info">
-                <div class="employee-avatar">${emp.name.charAt(0)}</div>
+                <div class="employee-avatar">${emp.username.charAt(0)}</div>
                 <div>
-                    <div class="employee-name">${emp.name}</div>
+                    <div class="employee-name">${emp.username}</div>
                     <div class="employee-email">${emp.email}</div>
                 </div>
             </div>
             <div style="display:flex;align-items:center;gap:12px;">
-                <span class="employee-role">${roleMap[emp.role] || emp.role}</span>
-                ${isOwner && emp.role !== 'owner' ? `
+                <span class="employee-role">${roleMap[emp.role_in_organization] || emp.role_in_organization}</span>
+                ${isOwner && emp.role_in_organization !== 'leader' ? `
                     <button class="btn-small delete" onclick="removeEmployee(${emp.id})">Удалить</button>
                 ` : ''}
             </div>
@@ -725,16 +1803,33 @@ function renderEmployees() {
     `).join('');
 }
 
-window.removeEmployee = function(id) {
-    if (confirm('Удалить сотрудника?')) {
-        const idx = employeesData.findIndex(e => e.id === id);
-        if (idx > -1) {
-            employeesData.splice(idx, 1);
-            renderEmployees();
-            toasts?.info('Сотрудник удалён', { duration: 2000 });
+window.removeEmployee = async function(id) {
+
+    const token =
+        localStorage.getItem(
+            'ck_access_token'
+        );
+
+    const response = await fetch(
+        `/api/v1/employees/${id}/`,
+        {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
         }
+    );
+
+    if (!response.ok) {
+        return;
     }
-};
+
+    employeesData = employeesData.filter(
+        e => e.id !== id
+    );
+
+    renderEmployees();
+}
 
 // ===== ВЫХОД =====
 function initOrgLogout() {
@@ -744,3 +1839,173 @@ function initOrgLogout() {
         }
     });
 }
+
+// ===== DADATA ADDRESS SUGGEST =====
+
+const DADATA_TOKEN = '2b155d95750decc0aa5471ea92398f5cc817332b';
+
+function initAddressSuggestions(inputId, suggestionsId) {
+    const input = document.getElementById(inputId);
+    const suggestions = document.getElementById(suggestionsId);
+
+    if (!input || !suggestions) return;
+
+    let debounceTimer;
+
+    input.addEventListener('input', () => {
+        const query = input.value.trim();
+
+        clearTimeout(debounceTimer);
+
+        if (query.length < 3) {
+            suggestions.style.display = 'none';
+            return;
+        }
+
+        debounceTimer = setTimeout(async () => {
+            try {
+
+                const response = await fetch(
+                    'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': `Token ${DADATA_TOKEN}`
+                        },
+                        body: JSON.stringify({
+                            query: query,
+                            count: 10
+                        })
+                    }
+                );
+
+                const data = await response.json();
+
+                renderSuggestions(
+                    data.suggestions || [],
+                    input,
+                    suggestions
+                );
+
+            } catch (err) {
+            }
+        }, 300);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.style.display = 'none';
+        }
+    });
+}
+
+function renderSuggestions(items, input, container) {
+
+    if (!items.length) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.innerHTML = items.map(item => `
+        <div class="address-suggestion-item">
+            ${item.value}
+        </div>
+    `).join('');
+
+    container.style.display = 'block';
+
+    container.querySelectorAll('.address-suggestion-item')
+        .forEach((el, index) => {
+
+            el.addEventListener('click', () => {
+                input.value = items[index].value;
+
+                input.dataset.lat = items[index].data.geo_lat || '';
+                input.dataset.lon = items[index].data.geo_lon || '';
+                input.blur();
+                container.style.display = 'none';
+            });
+
+        });
+}
+
+// ===== PHONE MASK =====
+
+function initPhoneMask(inputId) {
+
+    const input = document.getElementById(inputId);
+
+    if (!input) return;
+
+    input.addEventListener('input', formatPhone);
+    input.addEventListener('focus', onFocus);
+    input.addEventListener('blur', onBlur);
+
+    function onFocus() {
+
+        if (!input.value) {
+            input.value = '+7 ';
+        }
+    }
+
+    function onBlur() {
+
+        if (input.value === '+7 ') {
+            input.value = '';
+        }
+    }
+
+    function formatPhone() {
+
+        let value = input.value.replace(/\D/g, '');
+
+        // удаляем первую 7 или 8
+        if (value.startsWith('7')) {
+            value = value.slice(1);
+        }
+
+        if (value.startsWith('8')) {
+            value = value.slice(1);
+        }
+
+        value = value.substring(0, 10);
+
+        let result = '+7';
+
+        if (value.length > 0) {
+            result += ' (' + value.substring(0, 3);
+        }
+
+        if (value.length >= 4) {
+            result += ') ' + value.substring(3, 6);
+        }
+
+        if (value.length >= 7) {
+            result += '-' + value.substring(6, 8);
+        }
+
+        if (value.length >= 9) {
+            result += '-' + value.substring(8, 10);
+        }
+
+        input.value = result;
+    }
+}
+
+function getWasteLabel(value) {
+
+    const item = WASTE_TYPES.find(
+        t => t.value === value
+    );
+
+    return item ? item.label : value;
+}
+
+window.closeModal = function(modalId) {
+
+    document
+        .getElementById(modalId)
+        ?.classList.remove('active');
+};

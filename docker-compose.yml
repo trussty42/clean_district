@@ -32,7 +32,9 @@ services:
       - postgres
 
     volumes:
-      - static_volume:/app/staticfiles
+    # Удалить строку снизу потом
+      - ./backend:/app
+      - static_volume:/app/collected_static
       - media_volume:/app/media
 
 
@@ -45,6 +47,9 @@ services:
 
     depends_on:
       - backend
+    # Удалить volumes потом
+    volumes:
+      - ./frontend:/usr/share/nginx/html
 
 
   nginx:
@@ -59,5 +64,5 @@ services:
       - frontend
 
     volumes:
-      - static_volume:/staticfiles
+      - static_volume:/collected_static
       - media_volume:/media

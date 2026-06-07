@@ -76,6 +76,11 @@
     color: #609432;
 }
 
+.org-status-badge.active {
+    background: #e8f5e3;
+    color: #609432;
+}
+
 .org-status-badge.rejected {
     background: #ffebee;
     color: #c62828;
@@ -481,9 +486,10 @@
 
 /* Отзыв */
 .feedback-card {
-    border: 1px solid #eee;
+    border: 1px solid #d4d4d4;
     border-radius: 16px;
     padding: 20px;
+    box-shadow: 0 0px 20px rgba(0, 0, 0, 0.2);
 }
 
 .feedback-header {
@@ -493,26 +499,39 @@
     margin-bottom: 12px;
 }
 
+.feedback-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
 .feedback-user {
     font-weight: 600;
-    font-size: 15px;
+    font-size: 18px;
 }
 
 .feedback-date {
-    font-size: 13px;
+    font-size: 15px;
+    color: #888;
+}
+
+.feedback-point {
+    font-size: 15px;
     color: #888;
 }
 
 .feedback-rating {
     color: #FFD700;
-    margin-bottom: 8px;
+    font-size: 32px;
+    flex-shrink: 0;
 }
 
 .feedback-text {
-    font-size: 14px;
+    font-size: 18px;
     color: #000000;
-    margin-bottom: 16px;
+    margin-bottom: 4px;
     line-height: 1.5;
+    word-break: break-all;
 }
 
 .feedback-reply {
@@ -530,6 +549,9 @@
     font-size: 14px;
     resize: vertical;
     min-height: 60px;
+    border: 1px solid #0000004b;
+    border-radius: 10px;
+    padding: 10px;
 }
 
 .feedback-reply-actions {
@@ -936,4 +958,292 @@ input:focus::placeholder {
 .modal-content input::-ms-input-placeholder {
     color: #b0b0b0 !important;
     opacity: 1;
+}
+
+/* ===== ПОДСКАЗКИ АДРЕСОВ ===== */
+
+.address-wrapper {
+    position: relative;
+}
+
+.address-suggestions {
+
+    position: absolute;
+
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+
+    background: #fff;
+
+    border: 1px solid #dfe5dc;
+    border-radius: 16px;
+
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.08);
+
+    overflow: hidden;
+
+    z-index: 1000;
+
+    max-height: 240px;
+
+    overflow-y: auto;
+
+    display: none;
+}
+
+.address-suggestions.active {
+    display: block;
+}
+
+.address-suggestion-item {
+
+    padding: 14px 16px;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+    color: #2c2c2c;
+
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
+}
+
+.address-suggestion-item:hover {
+
+    background: #f4f8f1;
+
+    color: #609432;
+}
+
+.address-suggestion-item:not(:last-child) {
+
+    border-bottom: 1px solid #eef2eb;
+}
+
+input[readonly] {
+
+    background: #f5f7f4 !important;
+
+    color: #666;
+
+    cursor: not-allowed;
+}
+
+#editPointModal {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 20px;
+}
+
+#editPointModal > div {
+
+    width: min(1350px, 96vw) !important;
+
+    max-width: 1350px !important;
+
+    height: 92vh;
+
+    overflow-y: auto;
+
+    border-radius: 28px;
+
+    padding: 32px;
+}
+
+/* ===== WASTE TYPES ===== */
+
+.waste-management-block {
+
+    margin-top: 28px;
+}
+
+.waste-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 18px;
+}
+
+.waste-header h4 {
+
+    margin: 0;
+
+    font-size: 18px;
+
+    font-weight: 600;
+}
+
+.waste-grid {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 18px;
+}
+
+.waste-card {
+
+    border: 1px solid #e5e7e3;
+
+    border-radius: 20px;
+
+    padding: 20px;
+
+    background: #fafcf9;
+}
+
+.waste-card-top {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr 140px;
+
+    gap: 16px;
+
+    margin-bottom: 16px;
+}
+
+.waste-card textarea {
+
+    min-height: 90px;
+
+    resize: vertical;
+}
+
+.waste-photo-preview {
+
+    width: 100%;
+
+    height: 180px;
+
+    border-radius: 16px;
+
+    object-fit: cover;
+
+    margin-top: 12px;
+}
+
+.waste-card-actions {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    margin-top: 16px;
+}
+
+.news-image {
+
+    width: 100%;
+
+    height: 220px;
+
+    object-fit: cover;
+
+    border-radius: 18px;
+
+    margin-bottom: 14px;
+}
+
+.news-card {
+
+    cursor: pointer;
+    max-width: 1100px;
+    transition:
+        transform .18s ease,
+        box-shadow .18s ease;
+}
+
+.news-card:hover {
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.08);
+}
+
+.news-text {
+    word-break: break-all;
+}
+
+.news-date {
+    color:#609432;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+/* ===== СОТРУДНИКИ ===== */
+
+.employee-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 20px;
+    border-radius: 20px;
+
+    background: #fff;
+    border: 1px solid #e5e5e5;
+
+    box-shadow: 0 4px 20px rgba(0,0,0,.08);
+}
+
+.employee-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.employee-avatar {
+    width: 48px;
+    height: 48px;
+
+    border-radius: 50%;
+
+    background: #609432;
+    color: #fff;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.employee-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+}
+
+.employee-email {
+    font-size: 14px;
+    color: #777;
+}
+
+.employee-role {
+    padding: 6px 12px;
+
+    border-radius: 12px;
+
+    background: #f0f7ec;
+    color: #609432;
+
+    font-size: 13px;
+    font-weight: 600;
 }

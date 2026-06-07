@@ -7,14 +7,14 @@ const achievementsData = [
         title: 'Новичок', 
         desc: 'Первая сдача отходов', 
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>', 
-        unlocked: true 
+        unlocked: false 
     },
     { 
         id: 2, 
         title: 'Эко-герой', 
         desc: 'Сдал 50 кг вторсырья', 
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>', 
-        unlocked: true 
+        unlocked: false 
     },
     { 
         id: 3, 
@@ -191,7 +191,6 @@ function initProfileForm() {
             toasts.success('Профиль обновлён');
 
         } catch (err) {
-            console.error(err);
             toasts.error('Ошибка при обновлении');
         }
     });
@@ -330,30 +329,43 @@ function loadSavedAvatar() {
 }
 
 async function loadHistory() {
-    const token = localStorage.getItem('ck_access_token');
+
+    const token =
+        localStorage.getItem(
+            'ck_access_token'
+        );
+
     if (!token) return;
 
     try {
-        const response = await fetch('/api/v1/history/', {
-            headers: {
-                'Authorization': `Bearer ${token}`
+
+        const response = await fetch(
+            '/api/v1/history/',
+            {
+                headers: {
+                    'Authorization':
+                        `Bearer ${token}`
+                }
             }
-        });
+        );
 
         if (!response.ok) {
-            throw new Error('Ошибка загрузки истории');
+
+            throw new Error(
+                'Ошибка загрузки истории'
+            );
         }
 
-        const data = await response.json();
+        const data =
+            await response.json();
 
-        historyData = data; // 🔥 КЛЮЧЕВОЕ
+        historyData = data;
 
         renderHistory(historyData);
 
-        initAchievements(); // 🔥 теперь можно безопасно
+        initAchievements();
 
     } catch (err) {
-        console.error('Ошибка истории:', err);
     }
 }
 
@@ -361,15 +373,32 @@ function renderHistory(historyData) {
     const tbody = document.getElementById('historyTableBody');
     if (!tbody) return;
 
-    tbody.innerHTML = historyData.map(row => `
+    tbody.innerHTML = historyData.map((row, index) => `
         <tr>
             <td>${formatDate(row.created_at)}</td>
-            <td>${row.point || '-'}</td>
-            <td>${row.waste_type || '-'}</td>
+            <td>${row.point_name || '-'}</td>
+            <td>${row.waste_type_name || '-'}</td>
             <td>${row.weight} кг</td>
             <td>${row.total_price} ₽</td>
-            <td><span class="status-badge completed">Проверено</span></td>
-            <td>-</td>
+            <td>
+                <span class="status-badge completed">
+                    Проверено
+                </span>
+            </td>
+            <td>
+                ${
+                    row.has_review
+                    ? '<span class="status-badge completed">Отзыв оставлен</span>'
+                    : `
+                        <button
+                            class="btn-small edit"
+                            onclick="openReviewForm(${index})"
+                        >
+                            Оставить отзыв
+                        </button>
+                    `
+                }
+            </td>
         </tr>
     `).join('');
 }
@@ -386,8 +415,10 @@ window.openReviewForm = function(index) {
     modal.innerHTML = `
         <div class="modal-content review-modal">
             <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
-            <h3 style="margin: 0 0 8px 0; font-weight: 600;">Отзыв для "${row.point}"</h3>
-            <p style="color:#666;font-size:14px;margin-bottom:20px;">Сдача от ${row.date}</p>
+            <h3 style="margin: 0 0 8px 0; font-weight: 600;">Отзыв для "${row.point_name}"</h3>
+            <p style="color:#666;font-size:14px;margin-bottom:20px;">
+                Сдача от ${new Date(row.created_at).toLocaleString('ru-RU')}
+            </p>
             
             <div class="review-stars" id="reviewStars">
                 <span data-value="1">&#9733;</span>
@@ -411,6 +442,7 @@ window.openReviewForm = function(index) {
         
         star.addEventListener('click', () => {
             selectedRating = parseInt(star.dataset.value);
+            modal.dataset.rating = selectedRating;
             modal.querySelectorAll('#reviewStars span').forEach(s => {
                 s.style.color = parseInt(s.dataset.value) <= selectedRating ? '#FFD700' : '#ddd';
             });
@@ -422,22 +454,97 @@ window.openReviewForm = function(index) {
     });
 };
 
-window.submitReview = function(index) {
-    const text = document.getElementById('reviewText')?.value.trim();
+window.submitReview = async function(index) {
+
+    const row = historyData[index];
+
+    const text =
+        document.getElementById(
+            'reviewText'
+        )?.value.trim();
+
     if (!text) {
-        toasts.warning('Пожалуйста, напишите текст отзыва.', {
-            title: 'Пустой отзыв',
-            duration: 3000
-        });
+
+        toasts.warning(
+            'Напишите отзыв'
+        );
+
         return;
     }
-    
-    document.querySelector('.modal-overlay')?.remove();
 
-    toasts.success('Спасибо! Ваш отзыв помогает другим пользователям.', {
-        title: 'Отзыв отправлен',
-        duration: 4000
-    });
+    const modal =
+        document.querySelector(
+            '.review-modal'
+        )?.closest('.modal-overlay');
+
+    const rating =
+        Number(modal?.dataset.rating);
+    
+    if (!rating) {
+
+        toasts.warning(
+            'Поставьте оценку'
+        );
+
+        return;
+    }
+
+    const token =
+        localStorage.getItem(
+            'ck_access_token'
+        );
+
+    try {
+
+        const response = await fetch(
+            '/api/v1/reviews/',
+            {
+                method: 'POST',
+
+                headers: {
+                    'Authorization':
+                        `Bearer ${token}`,
+                    'Content-Type':
+                        'application/json'
+                },
+
+                body: JSON.stringify({
+                    point: row.point,
+                    rating: rating,
+                    text: text
+                })
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                Object.values(data)
+                    .flat()
+                    .join('\n')
+            );
+        }
+
+        document
+            .querySelector('.modal-overlay')
+            ?.remove();
+
+        toasts.success(
+            'Отзыв отправлен на модерацию'
+        );
+
+        await loadHistory();
+
+    } catch (err) {
+
+        toasts.error(
+            err.message
+        );
+    }
 };
 
 function initAchievements() {
@@ -477,11 +584,9 @@ function updateAchievements() {
                 });
             } else {
                 // Если старый формат — очищаем localStorage
-                console.warn('Старый формат достижений, сбрасываем');
                 localStorage.removeItem('ck_achievements');
             }
         } catch (e) {
-            console.error('Ошибка чтения достижений:', e);
             localStorage.removeItem('ck_achievements');
         }
     }
@@ -638,7 +743,11 @@ function initOrganizations() {
     }
 
     orgList.innerHTML = organizations.map(org => `
-        <div class="org-card" data-id="${org.id}">
+        <div
+            class="org-card"
+            data-id="${org.id}"
+            onclick="openOrgDashboard(${org.id})"
+        >
             <div class="org-info">
                 <span class="org-name">${org.name}</span>
                 <span class="org-role">${org.role}</span>
@@ -652,8 +761,6 @@ function initOrgModalOnce() {
     const modal = document.getElementById('createOrgModal');
     const closeBtn = document.getElementById('closeOrgModal');
     const createForm = document.getElementById('createOrgForm');
-
-    console.log('🔍 initOrgModalOnce:', { createBtn, modal, closeBtn, createForm });
 
     if (createBtn) {
         createBtn.addEventListener('click', () => {
@@ -719,54 +826,80 @@ async function loadPoints() {
             option.value = point.id;
 
             option.textContent =
-                `${point.organization} (${point.adress})`;
+                `${point.organization_name} (${point.adress})`;
 
             select.appendChild(option);
         });
 
     } catch (err) {
-
-        console.error(err);
 
         toasts.error('Не удалось загрузить пункты');
     }
 }
 
-async function loadWasteTypes() {
-
-    const select = document.getElementById('inputMaterial');
-
-    if (!select) return;
-
-    try {
-
-        const response = await fetch('/api/v1/waste-types/');
-
-        const wasteTypes = await response.json();
-
-        wasteTypes.forEach(type => {
-
-            const option = document.createElement('option');
-
-            option.value = type.id;
-
-            option.textContent = type.name;
-
-            select.appendChild(option);
-        });
-
-    } catch (err) {
-
-        console.error(err);
-
-        toasts.error('Не удалось загрузить типы отходов');
-    }
-}
-
 function initSubmissionModal() {
+    const pointSelect =
+        document.getElementById('inputPoint');
+
+    pointSelect?.addEventListener(
+        'change',
+        async (e) => {
+
+            const pointId = e.target.value;
+
+            const materialSelect =
+                document.getElementById(
+                    'inputMaterial'
+                );
+
+            materialSelect.innerHTML = `
+                <option
+                    value=""
+                    disabled
+                    selected
+                >
+                    Выберите тип
+                </option>
+            `;
+
+            if (!pointId) return;
+
+            try {
+
+                const response = await fetch(
+                    `/api/v1/points/${pointId}/`
+                );
+
+                const point =
+                    await response.json();
+
+                point.waste_types.forEach(type => {
+
+                    const option =
+                        document.createElement(
+                            'option'
+                        );
+
+                    option.value =
+                        type.id;
+
+                    option.textContent =
+                        type.waste_type_display;
+                    materialSelect.appendChild(
+                        option
+                    );
+                });
+
+            } catch (err) {
+
+                toasts.error(
+                    'Не удалось загрузить отходы'
+                );
+            }
+        }
+    );
 
     loadPoints();
-    loadWasteTypes();
 
     const modal = document.getElementById('submissionModal');
 
@@ -802,10 +935,30 @@ function initSubmissionModal() {
         const token = localStorage.getItem('ck_access_token');
 
         const data = {
-            point: document.getElementById('inputPoint').value,
-            waste_type: document.getElementById('inputMaterial').value,
-            weight: document.getElementById('inputWeight').value,
-            total_price: document.getElementById('inputSum').value || 0
+
+            point: Number(
+                document.getElementById(
+                    'inputPoint'
+                ).value
+            ),
+
+            waste_type: Number(
+                document.getElementById(
+                    'inputMaterial'
+                ).value
+            ),
+
+            weight: parseFloat(
+                document.getElementById(
+                    'inputWeight'
+                ).value
+            ),
+
+            total_price: parseFloat(
+                document.getElementById(
+                    'inputSum'
+                ).value || 0
+            )
         };
 
         try {
@@ -822,15 +975,29 @@ function initSubmissionModal() {
                 body: JSON.stringify(data)
             });
 
-            const result = await response.json();
+            const text =
+                await response.text();
+
+            let result = null;
+
+            try {
+
+                result = JSON.parse(text);
+
+            } catch {
+
+                toasts.error(
+                    'Ошибка сервера'
+                );
+
+                return;
+            }
 
             if (!response.ok) {
 
-                const message =
-                    result.detail ||
-                    Object.values(result).flat().join('\n');
-
-                toasts.error(message);
+                toasts.error(
+                    JSON.stringify(result)
+                );
 
                 return;
             }
@@ -844,8 +1011,6 @@ function initSubmissionModal() {
             await loadHistory();
 
         } catch (err) {
-
-            console.error(err);
 
             toasts.error('Сервер недоступен');
         }
@@ -872,7 +1037,6 @@ async function createOrganization(formData) {
         if (!response.ok) {
 
             const err = await response.json();
-            console.log(err)
             const message =
                 err.detail ||
                 Object.values(err).flat().join('\n')
@@ -889,7 +1053,6 @@ async function createOrganization(formData) {
         return true;
 
     } catch (err) {
-        console.error(err);
         toasts.error('Сервер недоступен');
     }
 }
