@@ -14,7 +14,9 @@
         <script src="./scripts/dashboard.js" defer></script>
         <script src="./scripts/check_auth.js"></script>
         <script>
-            requireAuth();
+            (async () => {
+                await requireAuth();
+            })();requireAuth();
         </script>
     </head>
     <body>
