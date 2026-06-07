@@ -1,23 +1,24 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Панель модератора - Чистый квартал</title>
-    <link rel="stylesheet" href="./fonts/fonts.css" />
-    <link rel="stylesheet" href="./styles/style.css" />
-    <link rel="stylesheet" href="./styles/dashboard.css" />
-    <link rel="stylesheet" href="./styles/moderation.css" />
-    <link rel="icon" href="./images/logo.svg" type="image/svg+xml">
-    <script src="./scripts/auth.js" defer></script>
-    <script src="./scripts/toast.js" defer></script>
-    <script src="./scripts/moderation.js" defer></script>
-    <script src="./scripts/check_auth.js"></script>
-    <script>
-        requireAuth();
-    </script>
-
-</head>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Панель модератора - Чистый квартал</title>
+        <link rel="stylesheet" href="./fonts/fonts.css" />
+        <link rel="stylesheet" href="./styles/style.css" />
+        <link rel="stylesheet" href="./styles/dashboard.css" />
+        <link rel="stylesheet" href="./styles/moderation.css" />
+        <link rel="icon" href="./images/logo.svg" type="image/svg+xml">
+        <script src="./scripts/auth.js" defer></script>
+        <script src="./scripts/toast.js" defer></script>
+        <script src="./scripts/moderation.js" defer></script>
+        <script src="./scripts/check_auth.js"></script>
+        <script>
+            (async () => {
+                await requireAuth();
+            })();requireAuth();
+        </script>
+    </head>
 <body>
     <header class="header">
         <div class="container">
