@@ -95,16 +95,14 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-      - name: Copy docker-compose.yml
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
-          scp -6 \
-            -o StrictHostKeyChecking=no \
-            docker-compose.production.yml \
-            ${{ secrets.USER }}@${{ secrets.HOST }}:~/cleandistrict/
+      - name: Copy docker-compose.yml via ssh
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "docker-compose.production.yml"
+          target: "clean_district"
       - name: Executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
         with:
