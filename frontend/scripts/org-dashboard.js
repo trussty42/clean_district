@@ -5,16 +5,14 @@ let newsData = [];
 const WASTE_TYPES = [
         { value: 'plastic', label: 'Пластик' },
         { value: 'glass', label: 'Стекло' },
-        { value: 'electronic', label: 'Электроника' },
+        { value: 'biological', label: 'Био отходы' },
         { value: 'metal', label: 'Металл' },
-        { value: 'paper', label: 'Бумага и картон' },
-        { value: 'furniture', label: 'Мебель и крупногабарит' },
-        { value: 'textile', label: 'Текстиль' },
+        { value: 'paper', label: 'Бумага' },
         { value: 'battery', label: 'Батарейки' },
-        { value: 'construction', label: 'Строительный мусор' },
-        { value: 'tree', label: 'Дерево' },
-        { value: 'tire', label: 'Автошины' },
-        { value: 'bulb', label: 'Лампочки' }
+        { value: 'cardboard', label: 'Картон' },
+        { value: 'clothes', label: 'Одежда' },
+        { value: 'shoes', label: 'Обувь' },
+        { value: 'trash', label: 'Мусор' }
     ];
 
 // ===== ЗАГРУЗКА И ИНИЦИАЛИЗАЦИЯ =====
