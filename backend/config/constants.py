@@ -32,14 +32,12 @@ ORGANIZATION_STATUSES = [
 WASTE_TYPES = [
     ('plastic', 'Пластик'),
     ('glass', 'Стекло'),
-    ('electronic', 'Электроника'),
+    ('biological', 'Био отходы'),
     ('metal', 'Металл'),
-    ('paper', 'Бумага и картон'),
-    ('furniture', 'Мебель и крупногабарит'),
-    ('textile', 'Текстиль'),
+    ('paper', 'Бумага'),
     ('battery', 'Батарейки'),
-    ('construction', 'Строительный мусор'),
-    ('tree', 'Дерево'),
-    ('tire', 'Автошины'),
-    ('bulb', 'Лампочки'),
+    ('cardboard', 'Картон'),
+    ('clothes', 'Одежда'),
+    ('shoes', 'Обувь'),
+    ('trash', 'Мусор')
 ]

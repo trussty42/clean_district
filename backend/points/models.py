@@ -81,6 +81,14 @@ class PointWasteTypes(models.Model):
         return f'{self.point.adress} - {self.waste_name}'
 
 
+class WasteType(models.Model):
+    slug = models.SlugField(unique=True)
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    preparation = models.JSONField(default=list)
+    warning = models.TextField(blank=True)
+
+
 class SubmissionHistory(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name='Пользователь'
