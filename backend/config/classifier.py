@@ -1,6 +1,6 @@
 from ultralytics import YOLO
 
-model = YOLO("weights/best.pt")
+model = YOLO("config/weights/best.pt")
 
 
 def recognize(image_path):
