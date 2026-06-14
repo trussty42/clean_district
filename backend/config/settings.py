@@ -48,9 +48,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://trussty4.gotdns.ch",
+]
+
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    "https://trussty4.gotdns.ch",
 ]
 
 ROOT_URLCONF = 'config.urls'
