@@ -124,6 +124,8 @@ class Employee(models.Model):
     )
 
     class Meta:
+        verbose_name = 'Работник'
+        verbose_name_plural = 'Работники'
         default_related_name = 'employee'
         unique_together = ('user', 'organization')
 

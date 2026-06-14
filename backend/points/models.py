@@ -88,6 +88,10 @@ class WasteType(models.Model):
     preparation = models.JSONField(default=list)
     warning = models.TextField(blank=True)
 
+    class Meta:
+        verbose_name = 'Тип отхода'
+        verbose_name_plural = 'Типы одходов'
+
 
 class SubmissionHistory(models.Model):
     user = models.ForeignKey(
