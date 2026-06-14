@@ -18,6 +18,11 @@ RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/c
 RUN pip install --no-cache-dir gunicorn==25.3.0 \
     && pip install --no-cache-dir -r requirements.txt
 
+RUN pip uninstall -y opencv-python
+
+RUN pip install --no-cache-dir --force-reinstall \
+    opencv-python-headless==4.13.0.92
+
 COPY . .
 
 EXPOSE 8000
