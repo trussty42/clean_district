@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 from django.contrib.auth import authenticate
 from django.db import transaction
 from django.db.models import Avg, Count, F, Q, Sum
@@ -9,6 +12,7 @@ from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import (AllowAny, IsAdminUser, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -21,9 +25,11 @@ from api.serializers import (EmployeeSerializer, ModerationLogSerializer,
                              SubmissionHistorySerializer, UserLoginSerializer,
                              UserProfileSerializer, UserRegistrationSerializer)
 from api.service import approve_object, has_organization_rights, reject_object
+from config.classifier import recognize
 from config.constants import COMPANY_LEADER, HAS_ORGANIZATION_RIGHTS
 from news.models import OrganizationNews
-from points.models import PickUpPoint, PointWasteTypes, SubmissionHistory
+from points.models import (PickUpPoint, PointWasteTypes, SubmissionHistory,
+                           WasteType)
 from reviews.models import ModerationLog, Review
 from users.models import Employee, Organization, User
 
@@ -740,3 +746,47 @@ class EmployeeViewSet(ModelViewSet):
             *args,
             **kwargs
         )
+
+
+class WasteRecognitionView(APIView):
+
+    def post(self, request):
+        image = request.FILES.get("image")
+
+        if not image:
+            return Response(
+                {"detail": "Image is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with tempfile.NamedTemporaryFile(
+            suffix=".jpg",
+            delete=False
+        ) as temp_file:
+
+            for chunk in image.chunks():
+                temp_file.write(chunk)
+
+            temp_path = temp_file.name
+
+        try:
+            prediction = recognize(temp_path)
+
+            waste_type = WasteType.objects.get(
+                slug=prediction["slug"]
+            )
+
+            return Response({
+                "waste_type": {
+                    "slug": waste_type.slug,
+                    "name": waste_type.name,
+                    "description": waste_type.description,
+                    "preparation": waste_type.preparation,
+                    "warning": waste_type.warning,
+                },
+                "confidence": prediction["confidence"],
+                "map_url": f"/map.html?waste_type={waste_type.slug}"
+            })
+
+        finally:
+            os.remove(temp_path)

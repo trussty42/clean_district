@@ -43,3 +43,5 @@ sqlparse==0.5.5
 tzdata==2025.3
 uritemplate==4.2.0
 urllib3==2.6.3
+ultralytics==8.4.66
+opencv-python-headless==4.13.0.92

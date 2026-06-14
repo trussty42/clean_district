@@ -602,3 +602,7 @@ class EmployeeCreateSerializer(serializers.Serializer):
     email = serializers.EmailField()
     organization = serializers.IntegerField()
     role_in_organization = serializers.CharField()
+
+
+class WasteRecognitionSerializer(serializers.Serializer):
+    image = serializers.ImageField()

@@ -5,28 +5,15 @@ const itemsPerPage = 12;
 const wasteTypes = {
 
     plastic: 'Пластик',
-
     glass: 'Стекло',
-
-    electronic: 'Электроника',
-
+    biological: 'Био отходы',
     metal: 'Металл',
-
-    paper: 'Бумага и картон',
-
-    furniture: 'Мебель',
-
-    textile: 'Текстиль',
-
+    paper: 'Бумага',
+    cardboard: 'Картон',
     battery: 'Батарейки',
-
-    construction: 'Строительный мусор',
-
-    tree: 'Дерево',
-
-    tire: 'Автошины',
-
-    bulb: 'Лампочки'
+    clothes: 'Одежда',
+    shoes: 'Обувь',
+    trash: 'Мусор'
 };
 
 async function loadCatalog() {
