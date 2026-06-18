@@ -300,6 +300,10 @@ def waste_catalog(request):
             'type': item['waste_type'],
             'price': float(item['average_price']),
             'points_count': item['points_count'],
+            'description': (
+                waste_info.description
+                if waste_info else ''
+            ),
             'preparation': (
                 waste_info.preparation
                 if waste_info else []
@@ -307,13 +311,8 @@ def waste_catalog(request):
             'warning': (
                 waste_info.warning
                 if waste_info else ''
-            ),
-            'description': (
-                waste_info.description
-                if waste_info else ''
             )
         })
-
     return Response(result)
 
 
