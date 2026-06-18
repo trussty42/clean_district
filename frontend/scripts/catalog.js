@@ -255,7 +255,7 @@ function initModal() {
         const notAccList = document.getElementById('modalNotAccepted');
         if (notAccList) {
             if (item.not_accepted) {
-                notAccList.innerHTML = item.notAccepted.map(txt => `<li>${txt}</li>`).join('');
+                notAccList.innerHTML = item.not_accepted.map(txt => `<li>${txt}</li>`).join('');
             } else {
                 notAccList.innerHTML = '<li>Информация уточняется</li>';
             }
