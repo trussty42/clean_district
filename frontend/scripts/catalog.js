@@ -64,11 +64,11 @@ function renderCatalog() {
             <div class="catalog-item" onclick="window.showItemDetails(${item.id})">
                 <div class="item-image">
                     <img src="./images/catalog/${item.image}" 
-                        alt="${item.name}" 
+                        alt="${item.waste_name}" 
                         onerror="this.src='./images/noimg.svg'">
                 </div>
-                <h3 class="item-name">${item.name}</h3>
-                <p class="item-category">${wasteTypes[item.type]}</p>
+                <h3 class="item-name">${item.waste_name}</h3>
+                <p class="item-category">${item.waste_type_display}</p>
                 <div class="item-price">
                     ${item.price.toFixed(2)} руб/кг
                 </div>
@@ -103,16 +103,14 @@ function applyFilters() {
             const text = label.textContent;
             if (text.includes('Пластик')) return 'plastic';
             if (text.includes('Стекло')) return 'glass';
-            if (text.includes('Электроника')) return 'electronic';
+            if (text.includes('Био отходы')) return 'biological';
             if (text.includes('Металл')) return 'metal';
             if (text.includes('Бумага')) return 'paper';
-            if (text.includes('Мебель')) return 'furniture';
-            if (text.includes('Текстиль')) return 'textile';
             if (text.includes('Батарейки')) return 'battery';
-            if (text.includes('Строительный')) return 'construction';
-            if (text.includes('Дерево')) return 'tree';
-            if (text.includes('Автошины')) return 'tire';
-            if (text.includes('Лампочки')) return 'bulb';
+            if (text.includes('Картон')) return 'cardboard';
+            if (text.includes('Одежда')) return 'clothes';
+            if (text.includes('Обувь')) return 'shoes';
+            if (text.includes('Мусор')) return 'trash';
             return null;
         })
         .filter(Boolean);
@@ -151,8 +149,8 @@ function initSearch() {
         timeout = setTimeout(() => {
             const query = e.target.value.toLowerCase().trim();
             filteredData = catalogData.filter(item =>
-                item.name.toLowerCase().includes(query) ||
-                wasteTypes[item.type]
+                item.waste_name.toLowerCase().includes(query) ||
+                wasteTypes[item.waste_type]
                     ?.toLowerCase()
                     .includes(query)
             );
@@ -230,13 +228,13 @@ function initModal() {
         const img = document.getElementById('modalImg');
         if (img) {
             img.src = './images/noimg.svg';
-            img.alt = item.name;
+            img.alt = item.waste_name;
         }
         
         const elements = {
-            'modalTitle': item.name,
-            'modalCategory': `${item.category}`,
-            'modalType': `Тип: ${wasteTypes[item.type]}`,
+            'modalTitle': item.waste_name,
+            'modalCategory': item.waste_type_display,
+            'modalType': `Тип: ${item.waste_type_display}`,
             'modalPrice': `${item.price} руб/кг`
         };
         
@@ -256,7 +254,7 @@ function initModal() {
         
         const notAccList = document.getElementById('modalNotAccepted');
         if (notAccList) {
-            if (item.notAccepted?.length) {
+            if (item.not_accepted) {
                 notAccList.innerHTML = item.notAccepted.map(txt => `<li>${txt}</li>`).join('');
             } else {
                 notAccList.innerHTML = '<li>Информация уточняется</li>';
@@ -264,8 +262,8 @@ function initModal() {
         }
         
         const recycledText = document.getElementById('modalRecycled');
-        if (recycledText) {
-            recycledText.textContent = getRecycledItems(item.type);
+        if (item.warning) {
+            recycledText.textContent = getRecycledItems(item.warning);
         }
 
         modalEl.classList.add('active');

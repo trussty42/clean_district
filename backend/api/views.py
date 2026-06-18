@@ -290,12 +290,28 @@ def waste_catalog(request):
 
     for index, item in enumerate(catalog):
 
+        waste_info = WasteType.objects.filter(
+            slug=item['waste_type']
+        ).first()
+
         result.append({
             'id': index + 1,
             'name': item['waste_name'],
             'type': item['waste_type'],
             'price': float(item['average_price']),
-            'points_count': item['points_count']
+            'points_count': item['points_count'],
+            'preparation': (
+                waste_info.preparation
+                if waste_info else []
+            ),
+            'warning': (
+                waste_info.warning
+                if waste_info else ''
+            ),
+            'description': (
+                waste_info.description
+                if waste_info else ''
+            )
         })
 
     return Response(result)

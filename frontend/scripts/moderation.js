@@ -20,6 +20,32 @@ const logActionLabels = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+
+    const token = localStorage.getItem('ck_access_token');
+
+    if (!token) {
+        window.location.href = '/';
+        return;
+    }
+
+    const response = await fetch('/api/v1/users/me/', {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        window.location.href = '/';
+        return;
+    }
+
+    const user = await response.json();
+
+    if (!user.is_staff) {
+        window.location.href = '/';
+        return;
+    }
+
     initTabs();
 
     await Promise.all([
