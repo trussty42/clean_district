@@ -1247,3 +1247,16 @@ input[readonly] {
     font-size: 13px;
     font-weight: 600;
 }
+
+#orgAvatarPreview img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 2;
+}
+
+#orgAvatarPreview.has-image .user-avatar-large {
+    display: none;
+}

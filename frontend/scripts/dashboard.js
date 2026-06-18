@@ -318,10 +318,14 @@ function updateAvatarEverywhere(url) {
 
 function loadSavedAvatar() {
     const saved = localStorage.getItem('ck_userAvatar');
+
     if (saved) {
+        updateFormAvatar(saved);
         updateAvatarEverywhere(saved);
-        
-        const removeBtn = document.getElementById('removeAvatar');
+
+        const removeBtn =
+            document.getElementById('removeAvatar');
+
         if (removeBtn) {
             removeBtn.style.display = 'inline-block';
         }
@@ -381,8 +385,20 @@ function renderHistory(historyData) {
             <td>${row.weight} кг</td>
             <td>${row.total_price} ₽</td>
             <td>
-                <span class="status-badge completed">
-                    Проверено
+                <span class="status-badge ${
+                    row.status === 'approved'
+                        ? 'completed'
+                        : row.status === 'pending'
+                        ? 'pending'
+                        : 'rejected'
+                }">
+                    ${
+                        row.status === 'approved'
+                            ? 'Проверено'
+                            : row.status === 'pending'
+                            ? 'На проверке'
+                            : 'Отклонено'
+                    }
                 </span>
             </td>
             <td>

@@ -474,7 +474,7 @@
 }
 
 /* Статус "Не подтверждено" */
-.status-badge.unconfirmed {
+.status-badge.rejected {
     color: #c62828;
 }
 
@@ -713,7 +713,7 @@
     color: #ef6c00;
 }
 
-.org-status.verified {
+.org-status.completed {
     background: #dcfcd0d5;
     color: #609432;
 }
@@ -1437,15 +1437,11 @@ input:focus::placeholder {
     font-weight: 600;
 }
 
-#orgAvatarPreview img {
+#avatarPreview img {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
     z-index: 2;
-}
-
-#orgAvatarPreview.has-image .user-avatar-large {
-    display: none;
 }

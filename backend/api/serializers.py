@@ -405,7 +405,8 @@ class SubmissionHistorySerializer(
             'total_price',
             'created_at',
             'has_review',
-            'review_status'
+            'review_status',
+            'status'
         )
 
         read_only_fields = (
