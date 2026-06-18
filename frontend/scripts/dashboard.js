@@ -364,7 +364,7 @@ async function loadHistory() {
             await response.json();
 
         historyData = data;
-
+        console.log(historyData);
         renderHistory(historyData);
 
         initAchievements();

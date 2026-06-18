@@ -476,11 +476,18 @@
 /* Статус "Не подтверждено" */
 .status-badge.rejected {
     color: #c62828;
+    background: #ef5454ae;
 }
 
 /* Статус "На проверке" */
 .status-badge.pending {
     color: #ef6c00;
+    background: #ec9a41c5;
+}
+
+.status-badge.completed {
+    background: #acee94c8;
+    color: #609432;
 }
 
 .btn-write-review {
@@ -709,18 +716,18 @@
 }
 
 .org-status.pending {
-    background: #ffe3b7b4;
     color: #ef6c00;
+    background: #ec9a41c5;
 }
 
 .org-status.completed {
-    background: #dcfcd0d5;
+    background: #acee94c8;
     color: #609432;
 }
 
 .org-status.rejected {
-    background: #ffebee;
     color: #c62828;
+    background: #ef5454ae;
 }
 
 .org-actions {
