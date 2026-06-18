@@ -20,9 +20,7 @@ async function loadCatalog() {
 
     try {
 
-        const response = await fetch('/api/v1/waste-catalog/')
-            .then(r => r.json())
-            .then(data => console.log(data[0]))
+        const response = await fetch('/api/v1/waste-catalog/');
 
         catalogData = await response.json();
 
@@ -64,11 +62,11 @@ function renderCatalog() {
             <div class="catalog-item" onclick="window.showItemDetails(${item.id})">
                 <div class="item-image">
                     <img src="./images/catalog/${item.image}" 
-                        alt="${item.waste_name}" 
+                        alt="${item.name}" 
                         onerror="this.src='./images/noimg.svg'">
                 </div>
-                <h3 class="item-name">${item.waste_name}</h3>
-                <p class="item-category">${item.waste_type_display}</p>
+                <h3 class="item-name">${item.name}</h3>
+                <p class="item-category">${wasteTypes[item.type]}</p>
                 <div class="item-price">
                     ${item.price.toFixed(2)} руб/кг
                 </div>
