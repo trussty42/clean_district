@@ -184,7 +184,7 @@ function initOrgProfile() {
     // Аватар
     if (orgData.logo) {
         updateOrgAvatarPreview(orgData.logo);
-        document.getElementById('orgRemoveAvatar')?.style.setProperty('display', 'inline-block');
+        document.getElementById('orgRemoveAvatar').innerHTML = `<img src="${orgData.logo}"`;
     }
 
     // Сохранение формы
