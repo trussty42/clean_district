@@ -1433,8 +1433,8 @@ input:focus::placeholder {
     display: inline-block;
     padding: 6px 12px;
     border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 400;
 }
 
 #avatarPreview img {
