@@ -113,6 +113,14 @@ class SubmissionHistory(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True, verbose_name='Дата сдачи'
     )
+    status = models.CharField(
+        choices=[
+            ('pending', 'На проверке'),
+            ('approved', 'Проверено'),
+            ('rejected', 'Отклонено'),
+        ],
+        default='pending'
+    )
 
     class Meta:
         verbose_name = 'История сдачи'
