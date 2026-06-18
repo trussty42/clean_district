@@ -1428,3 +1428,24 @@ input:focus::placeholder {
     color: #b0b0b0 !important;
     opacity: 1;
 }
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+#orgAvatarPreview img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 2;
+}
+
+#orgAvatarPreview.has-image .user-avatar-large {
+    display: none;
+}

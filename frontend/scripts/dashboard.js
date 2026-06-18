@@ -388,7 +388,23 @@ function renderHistory(historyData) {
             <td>
                 ${
                     row.has_review
-                    ? '<span class="status-badge completed">Отзыв оставлен</span>'
+                    ? `
+                        <span class="status-badge ${
+                            row.review_status === 'pending'
+                                ? 'pending'
+                                : row.review_status === 'approved'
+                                ? 'completed'
+                                : 'rejected'
+                        }">
+                            ${
+                                row.review_status === 'pending'
+                                    ? 'Не проверен'
+                                    : row.review_status === 'approved'
+                                    ? 'Проверен'
+                                    : 'Отклонён'
+                            }
+                        </span>
+                    `
                     : `
                         <button
                             class="btn-small edit"

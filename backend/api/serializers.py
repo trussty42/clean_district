@@ -389,6 +389,7 @@ class SubmissionHistorySerializer(
     point_name = serializers.SerializerMethodField()
     has_review = serializers.SerializerMethodField()
     waste_type_name = serializers.SerializerMethodField()
+    review_status = serializers.SerializerMethodField()
 
     class Meta:
 
@@ -404,6 +405,7 @@ class SubmissionHistorySerializer(
             'total_price',
             'created_at',
             'has_review',
+            'review_status'
         )
 
         read_only_fields = (
@@ -419,6 +421,17 @@ class SubmissionHistorySerializer(
             user=user,
             point=obj.point
         ).exists()
+
+    def get_review_status(self, obj):
+
+        user = self.context['request'].user
+
+        review = Review.objects.filter(
+            user=user,
+            point=obj.point
+        ).only('status').first()
+
+        return review.status if review else None
 
     def get_point_name(self, obj):
 
@@ -452,6 +465,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             'rating',
             'text',
             'reply',
+            'status',
             'created_at',
         )
 
@@ -459,6 +473,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             'id',
             'user',
             'created_at',
+            'status'
         )
 
     def validate(self, data):
