@@ -269,6 +269,15 @@ function initModal() {
 
         modalEl.classList.add('active');
         document.body.style.overflow = 'hidden';
+
+        const findPointBtn =
+    document.getElementById('findPointBtn');
+
+    if (findPointBtn) {
+
+        findPointBtn.href =
+            `map.html?waste_type=${encodeURIComponent(item.type)}`;
+}
     }
 
     function closeModal(modalEl) {

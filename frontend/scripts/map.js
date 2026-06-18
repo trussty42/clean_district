@@ -323,6 +323,19 @@ async function applyFilters() {
 
     const params = new URLSearchParams();
 
+    const urlParams = new URLSearchParams(
+        window.location.search
+    );
+
+    const wasteType =
+        urlParams.get('waste_type');
+
+    if (wasteType) {
+
+        checkedTypes.push(wasteType);
+
+    }
+
     // Типы отходов
     if (checkedTypes.length) {
 
