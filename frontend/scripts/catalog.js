@@ -230,9 +230,9 @@ function initModal() {
         }
         
         const elements = {
-            'modalTitle': item.waste_name,
-            'modalCategory': item.waste_type_display,
-            'modalType': `Тип: ${item.waste_type_display}`,
+            'modalTitle': item.name,
+            'modalCategory': wasteTypes[item.waste_type_display],
+            'modalType': `Тип: ${wasteTypes[item.waste_type_display]}`,
             'modalPrice': `${item.price} руб/кг`
         };
         
