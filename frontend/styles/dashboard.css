@@ -717,17 +717,17 @@
 
 .org-status.pending {
     color: #ef6c00;
-    background: #ec9a41c5;
+    background: #fdbd78b1;
 }
 
 .org-status.completed {
-    background: #acee94c8;
+    background: #b3eb9e9c;
     color: #609432;
 }
 
 .org-status.rejected {
     color: #c62828;
-    background: #ef5454ae;
+    background: #d681819d;
 }
 
 .org-actions {

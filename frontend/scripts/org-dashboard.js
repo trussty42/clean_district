@@ -126,7 +126,7 @@ function initOrgHeader() {
     
     if (nameEl) nameEl.textContent = orgData.name || '';
     if (badgeEl) {
-        const statusMap = { pending: 'На модерации', active: 'Активна', rejected: 'Отклонена' };
+        const statusMap = { pending: 'На модерации', approved: 'Активна', rejected: 'Отклонена' };
         badgeEl.textContent = statusMap[orgData.status];
         badgeEl.className = `org-status-badge ${orgData.status}`;
     }
