@@ -286,13 +286,40 @@ def waste_catalog(request):
         .order_by('waste_name')
     )
 
+    waste_types = {
+        item.slug: item
+        for item in WasteType.objects.all()
+    }
+
+    photos = {}
+
+    for waste in (
+        PointWasteTypes.objects
+        .filter(photo__isnull=False)
+        .exclude(photo='')
+    ):
+        key = (
+            waste.waste_name,
+            waste.waste_type
+        )
+
+        if key not in photos:
+            photos[key] = waste.photo.url
+
     result = []
 
     for index, item in enumerate(catalog):
 
-        waste_info = WasteType.objects.filter(
-            slug=item['waste_type']
-        ).first()
+        waste_info = waste_types.get(
+            item['waste_type']
+        )
+
+        photo = photos.get(
+            (
+                item['waste_name'],
+                item['waste_type']
+            )
+        )
 
         result.append({
             'id': index + 1,
@@ -300,6 +327,10 @@ def waste_catalog(request):
             'type': item['waste_type'],
             'price': float(item['average_price']),
             'points_count': item['points_count'],
+            'photo': (
+                request.build_absolute_uri(photo)
+                if photo else None
+            ),
             'description': (
                 waste_info.description
                 if waste_info else ''
@@ -313,6 +344,7 @@ def waste_catalog(request):
                 if waste_info else ''
             )
         })
+
     return Response(result)
 
 

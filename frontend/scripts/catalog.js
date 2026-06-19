@@ -61,8 +61,8 @@ function renderCatalog() {
         grid.innerHTML = items.map(item => `
             <div class="catalog-item" onclick="window.showItemDetails(${item.id})">
                 <div class="item-image">
-                    <img src="./images/catalog/${item.image}" 
-                        alt="${item.name}" 
+                    <img src="${item.photo || './images/noimg.svg'}"
+                        alt="${item.name}"
                         onerror="this.src='./images/noimg.svg'">
                 </div>
                 <h3 class="item-name">${item.name}</h3>
@@ -147,8 +147,8 @@ function initSearch() {
         timeout = setTimeout(() => {
             const query = e.target.value.toLowerCase().trim();
             filteredData = catalogData.filter(item =>
-                item.waste_name.toLowerCase().includes(query) ||
-                wasteTypes[item.waste_type]
+                item.name.toLowerCase() ||
+                wasteTypes[item.type]
                     ?.toLowerCase()
                     .includes(query)
             );
@@ -225,14 +225,14 @@ function initModal() {
         
         const img = document.getElementById('modalImg');
         if (img) {
-            img.src = './images/noimg.svg';
+            img.src = item.photo || './images/noimg.svg';
             img.alt = item.waste_name;
         }
         
         const elements = {
             'modalTitle': item.name,
-            'modalCategory': wasteTypes[item.waste_type_display],
-            'modalType': `Тип: ${wasteTypes[item.waste_type_display]}`,
+            'modalCategory': wasteTypes[item.type],
+            'modalType': `Тип: ${wasteTypes[item.type]}`,
             'modalPrice': `${item.price} руб/кг`
         };
         
