@@ -90,14 +90,18 @@ async function loadPoints() {
 }
 
 // ===== ИНИЦИАЛИЗАЦИЯ =====
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+
+    getUserLocation();
+
     if (typeof ymaps === 'undefined') {
         return;
     }
-    
+
     ymaps.ready(async () => {
 
         await loadPoints();
+
         initMap();
         initViewToggle();
         initFilters();
@@ -105,9 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
         initSort();
         renderList();
     });
-    
-    // Вызываем получение геолокации
-    getUserLocation();
 });
 
 // ===== КАРТА =====
@@ -320,6 +321,20 @@ async function applyFilters() {
     const radius = document
         .getElementById('radiusRange')
         ?.value;
+
+    if (
+        radius > 0 &&
+        !window.userCoordinates
+    ) {
+
+        getUserLocation();
+
+        alert(
+            'Определяем ваше местоположение. Нажмите "Применить" еще раз через пару секунд.'
+        );
+
+        return;
+    }
 
     const params = new URLSearchParams();
 
